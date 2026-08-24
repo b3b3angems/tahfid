@@ -12,7 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// تهيئة قاعدة البيانات والتأكد من الأعمدة الهجرية
+// تهيئة قاعدة البيانات والتأكد من الأعمدة
 async function initDB() {
   try {
     await pool.query(`
@@ -25,7 +25,7 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS attendance (
         id SERIAL PRIMARY KEY,
         student_id INT REFERENCES students(id) ON DELETE CASCADE,
-        status VARCHAR(20) DEFAULT 'present',
+        status VARCHAR(20) DEFAULT 'unmarked',
         reason TEXT DEFAULT '',
         day_name VARCHAR(20) DEFAULT 'الأحد',
         year_num INT DEFAULT 1447,
@@ -34,13 +34,11 @@ async function initDB() {
       );
     `);
 
-    // إضافة وتأكيد الأعمدة الهجرية
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS year_num INT DEFAULT 1447;`);
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS month_num INT DEFAULT 1;`);
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS week_num INT DEFAULT 1;`);
     await pool.query(`ALTER TABLE attendance ALTER COLUMN date DROP NOT NULL;`).catch(() => {});
 
-    // قيد فريد يمنع تكرار التحضير لنفس الطالب باليوم والأسبوع والشهر والسنة
     await pool.query(`
       DO $$ 
       BEGIN 
@@ -52,7 +50,7 @@ async function initDB() {
       END $$;
     `);
 
-    console.log('Database initialized with Hijri calendar support');
+    console.log('Database initialized with unmarked status support');
   } catch (err) {
     console.error('Error initializing DB:', err);
   }
@@ -68,7 +66,7 @@ app.get('/', (req, res) => {
   else res.status(404).send('Index file not found');
 });
 
-// جلب الطلاب حسب التاريخ الهجري
+// جلب الطلاب مع حالتها (الافتراضي unmarked)
 app.get('/api/students', async (req, res) => {
   const day = req.query.day || 'الأحد';
   const year = parseInt(req.query.year) || 1447;
@@ -78,7 +76,7 @@ app.get('/api/students', async (req, res) => {
   try {
     const query = `
       SELECT s.id, s.name, s.ring, 
-             COALESCE(a.status, 'present') as status, 
+             COALESCE(a.status, 'unmarked') as status, 
              COALESCE(a.reason, '') as reason
       FROM students s
       LEFT JOIN attendance a 
@@ -112,7 +110,7 @@ app.post('/api/students', async (req, res) => {
     await pool.query(
       `INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status) 
        VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING`,
-      [student.id, currentDay, y, m, w, 'present']
+      [student.id, currentDay, y, m, w, 'unmarked']
     );
     res.json(student);
   } catch (err) { 
@@ -143,21 +141,22 @@ app.put('/api/attendance', async (req, res) => {
   }
 });
 
-// تحضير الجميع "حاضر"
-app.post('/api/attendance/all-present', async (req, res) => {
-  const { ring, day, year, month, week } = req.body;
+// تعيين حالة جماعية (مثل: حاضري الكل أو لم يتم التحضير للكل)
+app.post('/api/attendance/all-status', async (req, res) => {
+  const { ring, day, year, month, week, status } = req.body;
   const y = parseInt(year) || 1447;
   const m = parseInt(month) || 1;
   const w = parseInt(week) || 1;
+  const newStatus = status || 'unmarked';
 
   try {
     const students = await pool.query('SELECT id FROM students WHERE ring = $1', [ring]);
     for (let s of students.rows) {
       await pool.query(`
         INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status, reason)
-        VALUES ($1, $2, $3, $4, $5, 'present', '')
-        ON CONFLICT (student_id, day_name, week_num, month_num, year_num) DO UPDATE SET status = 'present';
-      `, [s.id, day, y, m, w]);
+        VALUES ($1, $2, $3, $4, $5, $6, '')
+        ON CONFLICT (student_id, day_name, week_num, month_num, year_num) DO UPDATE SET status = $6, reason = '';
+      `, [s.id, day, y, m, w, newStatus]);
     }
     res.json({ success: true });
   } catch (err) { 
