@@ -12,7 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// إنشاء جداول الطلاب وسجلات الحضور اليومية
+// إنشاء الجداول
 pool.query(`
   CREATE TABLE IF NOT EXISTS students (
     id SERIAL PRIMARY KEY,
@@ -22,14 +22,14 @@ pool.query(`
   CREATE TABLE IF NOT EXISTS attendance (
     id SERIAL PRIMARY KEY,
     student_id INT REFERENCES students(id) ON DELETE CASCADE,
-    date DATE NOT NULL,
+    day_name VARCHAR(20) NOT NULL,
     status VARCHAR(20) DEFAULT 'present',
     reason TEXT DEFAULT '',
-    UNIQUE(student_id, date)
+    UNIQUE(student_id, day_name)
   );
 `);
 
-// الصفحة الرئيسية
+// عرض الصفحة الرئيسية
 app.get('/', (req, res) => {
   const publicPath = path.join(__dirname, 'public', 'index.html');
   const rootPath = path.join(__dirname, 'index.html');
@@ -38,61 +38,61 @@ app.get('/', (req, res) => {
   else res.status(404).send('Index file not found');
 });
 
-// جلب قائمة الطلاب بحسب التاريخ المحدد
+// جلب الطلاب بحسب اليوم المحدد
 app.get('/api/students', async (req, res) => {
-  const date = req.query.date || new Date().toISOString().split('T')[0];
+  const day = req.query.day || 'الأحد';
   try {
     const query = `
       SELECT s.id, s.name, s.ring, 
              COALESCE(a.status, 'present') as status, 
              COALESCE(a.reason, '') as reason
       FROM students s
-      LEFT JOIN attendance a ON s.id = a.student_id AND a.date = $1
+      LEFT JOIN attendance a ON s.id = a.student_id AND a.day_name = $1
       ORDER BY s.id ASC
     `;
-    const result = await pool.query(query, [date]);
+    const result = await pool.query(query, [day]);
     res.json(result.rows);
   } catch (err) { res.status(500).send(err.message); }
 });
 
 // إضافة طالب جديد
 app.post('/api/students', async (req, res) => {
-  const { name, ring, date } = req.body;
-  const currentDate = date || new Date().toISOString().split('T')[0];
+  const { name, ring, day } = req.body;
+  const currentDay = day || 'الأحد';
   try {
     const studentRes = await pool.query('INSERT INTO students (name, ring) VALUES ($1, $2) RETURNING *', [name, ring]);
     const student = studentRes.rows[0];
-    await pool.query('INSERT INTO attendance (student_id, date, status) VALUES ($1, $2, $3)', [student.id, currentDate, 'present']);
+    await pool.query('INSERT INTO attendance (student_id, day_name, status) VALUES ($1, $2, $3)', [student.id, currentDay, 'present']);
     res.json(student);
   } catch (err) { res.status(500).send(err.message); }
 });
 
 // تحديث حالة الحضور والسبب
 app.put('/api/attendance', async (req, res) => {
-  const { student_id, date, status, reason } = req.body;
+  const { student_id, day, status, reason } = req.body;
   try {
     const query = `
-      INSERT INTO attendance (student_id, date, status, reason)
+      INSERT INTO attendance (student_id, day_name, status, reason)
       VALUES ($1, $2, $3, $4)
-      ON CONFLICT (student_id, date) 
+      ON CONFLICT (student_id, day_name) 
       DO UPDATE SET status = EXCLUDED.status, reason = EXCLUDED.reason;
     `;
-    await pool.query(query, [student_id, date, status, reason || '']);
+    await pool.query(query, [student_id, day, status, reason || '']);
     res.json({ success: true });
   } catch (err) { res.status(500).send(err.message); }
 });
 
-// تحضير جميع الطلاب بـ "حاضر" ليوم معين
+// تحضير الجميع "حاضر" لليوم المحدد
 app.post('/api/attendance/all-present', async (req, res) => {
-  const { ring, date } = req.body;
+  const { ring, day } = req.body;
   try {
     const students = await pool.query('SELECT id FROM students WHERE ring = $1', [ring]);
     for (let s of students.rows) {
       await pool.query(`
-        INSERT INTO attendance (student_id, date, status, reason)
+        INSERT INTO attendance (student_id, day_name, status, reason)
         VALUES ($1, $2, 'present', '')
-        ON CONFLICT (student_id, date) DO UPDATE SET status = 'present';
-      `, [s.id, date]);
+        ON CONFLICT (student_id, day_name) DO UPDATE SET status = 'present';
+      `, [s.id, day]);
     }
     res.json({ success: true });
   } catch (err) { res.status(500).send(err.message); }
@@ -106,16 +106,14 @@ app.delete('/api/students/:id', async (req, res) => {
   } catch (err) { res.status(500).send(err.message); }
 });
 
-// جلب إحصائيات الأسبوع والشهر للطالب
+// جلب إحصائيات الطالب
 app.get('/api/students/:id/stats', async (req, res) => {
   const studentId = req.params.id;
   try {
     const statsQuery = `
       SELECT 
-        COUNT(CASE WHEN status = 'absent' AND date >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END) as absent_week,
-        COUNT(CASE WHEN status = 'absent' AND date >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as absent_month,
-        COUNT(CASE WHEN status = 'excused' AND date >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END) as excused_week,
-        COUNT(CASE WHEN status = 'excused' AND date >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as excused_month
+        COUNT(CASE WHEN status = 'absent' THEN 1 END) as absent_count,
+        COUNT(CASE WHEN status = 'excused' THEN 1 END) as excused_count
       FROM attendance
       WHERE student_id = $1;
     `;

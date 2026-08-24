@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>جامع الشقيحي - نظام إدارة الحلقات</title>
+    <title>جامع الشقيحي - نظام الحلقات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -33,17 +33,16 @@
         .portal-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; padding: 0.9rem; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
         .portal-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
         .custom-input { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 10px; color: #fff; font-size: 1rem; outline: none; margin-top: 0.8rem; text-align: center; }
-        .custom-input:focus { border-color: var(--primary); }
 
         .hidden { display: none !important; }
 
         header { text-align: center; margin-bottom: 1.5rem; }
         header h1 { font-size: 2.2rem; color: var(--primary); font-weight: 800; }
-        header p { color: var(--text-muted); font-size: 0.95rem; }
 
-        .date-picker-box { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem 1.2rem; border-radius: 14px; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-        .date-picker-box label { font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
-        .date-picker-box input { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); color: #fff; padding: 0.5rem 0.8rem; border-radius: 8px; outline: none; font-weight: bold; cursor: pointer; }
+        /* شريط أزرار أيام الأسبوع */
+        .days-bar { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; background: var(--card-bg); padding: 0.6rem; border-radius: 16px; border: 1px solid var(--border); }
+        .day-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
 
         .rings-tabs { display: flex; gap: 0.6rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
         .tab-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
@@ -56,27 +55,23 @@
 
         .add-student-box { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; display: flex; gap: 0.8rem; }
         .add-student-box input { flex: 1; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); padding: 0.7rem 1rem; border-radius: 8px; color: #fff; outline: none; font-size: 0.95rem; }
-        .add-student-box button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .add-student-box button:hover { background: var(--primary-dark); }
+        .add-student-box button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; }
 
         .students-list { display: flex; flex-direction: column; gap: 0.8rem; }
         .student-card { background: var(--card-bg); border: 1px solid var(--border); padding: 0.9rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; }
-        .student-info { display: flex; align-items: center; gap: 0.7rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .student-info { display: flex; align-items: center; gap: 0.7rem; font-weight: 700; cursor: pointer; }
         .student-info:hover { color: var(--primary); }
-        .student-info i { color: var(--primary); }
         .reason-tag { font-size: 0.75rem; color: var(--excused); display: block; margin-top: 0.2rem; font-weight: 500; }
 
         .attendance-btns { display: flex; gap: 0.4rem; }
-        .status-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: var(--text); padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: 0.2s; }
+        .status-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: var(--text); padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; }
         .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; }
         .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; }
         .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; }
 
-        .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; width: 90%; max-width: 420px; text-align: center; }
         .stats-badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.2rem 0; }
         .badge-box { background: rgba(15,23,42,0.6); padding: 0.9rem; border-radius: 12px; border: 1px solid var(--border); }
-        .badge-box p { font-size: 0.8rem; margin-bottom: 0.3rem; }
-        .badge-box h2 { font-size: 1.6rem; font-weight: 800; }
     </style>
 </head>
 <body>
@@ -86,7 +81,7 @@
         <div class="portal-card">
             <span class="mosque-icon">🕌</span>
             <h2>جامع الشقيحي</h2>
-            <p>نظام التحضير ومتابعة الحضور اليومي</p>
+            <p>نظام تحضير الحلقات الأسبوعي</p>
 
             <div id="portal-main" class="portal-btns">
                 <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> المحضر</button>
@@ -105,8 +100,8 @@
 
             <!-- Student Search Form -->
             <div id="student-search-form" class="hidden">
-                <p>ابحث باسم الطالب للاطلاع على سجل الحضور:</p>
-                <input type="text" id="search-name-input" class="custom-input" placeholder="اسم الطالب الكامل...">
+                <p>ابحث باسم الطالب لعرض تفاصيل الحضور:</p>
+                <input type="text" id="search-name-input" class="custom-input" placeholder="اسم الطالب...">
                 <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
                     <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="searchStudent()">بحث</button>
                     <button class="portal-btn" style="flex:1;" onclick="resetPortal()">إلغاء</button>
@@ -120,40 +115,40 @@
     <div class="portal-overlay hidden" id="reason-modal">
         <div class="modal-box">
             <h3>سبب الاستئذان (اختياري)</h3>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">يمكنك كتابة سبب الاستئذان لتوثيقه بالسجل</p>
-            <input type="text" id="reason-input" class="custom-input" placeholder="مثال: ظروف عائلية...">
+            <input type="text" id="reason-input" class="custom-input" placeholder="مثال: مستأذن للظروف...">
             <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
                 <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="confirmExcused()">حفظ</button>
-                <button class="portal-btn" style="flex:1;" onclick="closeReasonModal()">تخطي بدون سبب</button>
+                <button class="portal-btn" style="flex:1;" onclick="closeReasonModal()">تخطي</button>
             </div>
         </div>
     </div>
 
-    <!-- Student Stats Modal (For Admin) -->
+    <!-- Student Stats Modal -->
     <div class="portal-overlay hidden" id="stats-modal">
         <div class="modal-box">
             <h3 id="modal-student-name" style="color:var(--primary);">إحصائيات الطالب</h3>
             <div class="stats-badge-grid">
-                <div class="badge-box"><p style="color:var(--absent)">غياب الأسبوع</p><h2 id="st-absent-week" style="color:var(--absent)">0</h2></div>
-                <div class="badge-box"><p style="color:var(--absent)">غياب الشهر</p><h2 id="st-absent-month" style="color:var(--absent)">0</h2></div>
-                <div class="badge-box"><p style="color:var(--excused)">استئذان الأسبوع</p><h2 id="st-excused-week" style="color:var(--excused)">0</h2></div>
-                <div class="badge-box"><p style="color:var(--excused)">استئذان الشهر</p><h2 id="st-excused-month" style="color:var(--excused)">0</h2></div>
+                <div class="badge-box"><p style="color:var(--absent)">إجمالي الغياب</p><h2 id="st-absent" style="color:var(--absent)">0</h2></div>
+                <div class="badge-box"><p style="color:var(--excused)">إجمالي الاستئذان</p><h2 id="st-excused" style="color:var(--excused)">0</h2></div>
             </div>
             <button class="portal-btn" style="width:100%" onclick="closeStatsModal()">إغلاق</button>
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
+    <!-- Admin View -->
     <div class="container hidden" id="admin-view">
         <header>
             <h1>🕌 جامع الشقيحي</h1>
-            <p>لوحة تحضير الطلاب ومتابعة الحلقات</p>
+            <p>سجل الحضور الأسبوعي</p>
         </header>
 
-        <!-- Date Picker Control -->
-        <div class="date-picker-box">
-            <label for="selected-date"><i class="fa-solid fa-calendar-days" style="color:var(--primary);"></i> عرض سجل يوم:</label>
-            <input type="date" id="selected-date" onchange="loadStudents()">
+        <!-- Days Selector Bar -->
+        <div class="days-bar">
+            <button class="day-btn active" onclick="switchDay('الأحد')">الأحد</button>
+            <button class="day-btn" onclick="switchDay('الاثنين')">الاثنين</button>
+            <button class="day-btn" onclick="switchDay('الثلاثاء')">الثلاثاء</button>
+            <button class="day-btn" onclick="switchDay('الأربعاء')">الأربعاء</button>
+            <button class="day-btn" onclick="switchDay('الخميس')">الخميس</button>
         </div>
 
         <div class="rings-tabs">
@@ -183,20 +178,33 @@
     </div>
 
     <script>
+        let currentDay = 'الأحد';
         let currentRing = 'omar';
         let allStudents = [];
         let activeStudentForReason = null;
 
-        // تعيين التاريخ الافتراضي ليوم اليوم
-        document.getElementById('selected-date').value = new Date().toISOString().split('T')[0];
-
         async function loadStudents() {
-            const date = document.getElementById('selected-date').value;
             try {
-                const res = await fetch(`/api/students?date=${date}`);
+                const res = await fetch(`/api/students?day=${currentDay}`);
                 allStudents = await res.json();
                 render();
             } catch (err) { console.error(err); }
+        }
+
+        function switchDay(dayName) {
+            currentDay = dayName;
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.trim() === dayName);
+            });
+            loadStudents();
+        }
+
+        function switchRing(ringKey) {
+            currentRing = ringKey;
+            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
+            });
+            render();
         }
 
         function showPasscodeForm() {
@@ -223,7 +231,6 @@
             } else alert('الرمز غير صحيح!');
         }
 
-        // البحث للمستفيد/الطالب
         async function searchStudent() {
             const nameQuery = document.getElementById('search-name-input').value.trim().toLowerCase();
             const resultBox = document.getElementById('student-result');
@@ -231,7 +238,7 @@
 
             const found = allStudents.filter(s => s.name.toLowerCase().includes(nameQuery));
             if (found.length === 0) {
-                resultBox.innerHTML = `<p style="margin-top:1rem; color:var(--absent);">لم يتم العثور على طالب بهذا الاسم.</p>`;
+                resultBox.innerHTML = `<p style="margin-top:1rem; color:var(--absent);">لم يتم العثور على طالب.</p>`;
                 return;
             }
 
@@ -242,36 +249,27 @@
 
                 resultBox.innerHTML += `
                     <div style="background:rgba(15,23,42,0.8); padding:1.2rem; border-radius:14px; margin-top:1rem; border:1px solid var(--border); text-align:right;">
-                        <h4 style="color:var(--primary); font-size:1.1rem; margin-bottom:0.4rem;">${student.name}</h4>
-                        <p style="font-size:0.9rem; margin-bottom:0.3rem;">حالة اليوم: <b>${student.status === 'present' ? 'حاضر ✅' : student.status === 'absent' ? 'غائب ❌' : 'مستأذن ⚠️'}</b></p>
+                        <h4 style="color:var(--primary);">${student.name}</h4>
+                        <p style="font-size:0.9rem; margin-top:0.3rem;">حالة يوم (${currentDay}): <b>${student.status === 'present' ? 'حاضر ✅' : student.status === 'absent' ? 'غائب ❌' : 'مستأذن ⚠️'}</b></p>
                         ${student.reason ? `<p style="font-size:0.85rem; color:var(--excused);">السبب: ${student.reason}</p>` : ''}
                         <hr style="border-color:var(--border); margin:0.8rem 0;">
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; text-align:center; font-size:0.85rem;">
-                            <div style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:8px;">غياب الأسبوع: <b style="color:var(--absent);">${stats.absent_week}</b></div>
-                            <div style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:8px;">غياب الشهر: <b style="color:var(--absent);">${stats.absent_month}</b></div>
+                        <div style="display:flex; justify-content:space-around; text-align:center; font-size:0.85rem;">
+                            <span>مجموع الغياب: <b style="color:var(--absent);">${stats.absent_count}</b></span>
+                            <span>مجموع الاستئذان: <b style="color:var(--excused);">${stats.excused_count}</b></span>
                         </div>
                     </div>
                 `;
             }
         }
 
-        function switchRing(ringKey) {
-            currentRing = ringKey;
-            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
-                btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
-            });
-            render();
-        }
-
         async function addStudent() {
             const name = document.getElementById('student-name-input').value.trim();
-            const date = document.getElementById('selected-date').value;
             if (!name) return;
 
             await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, ring: currentRing, date })
+                body: JSON.stringify({ name, ring: currentRing, day: currentDay })
             });
 
             document.getElementById('student-name-input').value = '';
@@ -279,7 +277,6 @@
         }
 
         async function setStatus(studentId, status, reason = '') {
-            const date = document.getElementById('selected-date').value;
             if (status === 'excused' && reason === '') {
                 activeStudentForReason = studentId;
                 document.getElementById('reason-modal').classList.remove('hidden');
@@ -289,7 +286,7 @@
             await fetch('/api/attendance', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ student_id: studentId, date, status, reason })
+                body: JSON.stringify({ student_id: studentId, day: currentDay, status, reason })
             });
             loadStudents();
         }
@@ -298,40 +295,36 @@
             const reason = document.getElementById('reason-input').value.trim();
             document.getElementById('reason-modal').classList.add('hidden');
             document.getElementById('reason-input').value = '';
-            setStatus(activeStudentForReason, 'excused', reason || 'بدون ذكر سبب');
+            setStatus(activeStudentForReason, 'excused', reason || 'بدون سبب');
         }
 
         function closeReasonModal() {
             document.getElementById('reason-modal').classList.add('hidden');
-            setStatus(activeStudentForReason, 'excused', 'بدون ذكر سبب');
+            setStatus(activeStudentForReason, 'excused', 'بدون سبب');
         }
 
         async function setAllPresent() {
-            const date = document.getElementById('selected-date').value;
             await fetch('/api/attendance/all-present', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ring: currentRing, date })
+                body: JSON.stringify({ ring: currentRing, day: currentDay })
             });
             loadStudents();
         }
 
         async function deleteStudent(id) {
-            if (!confirm('هل أنت تأكد من حذف هذا الطالب؟')) return;
+            if (!confirm('تأكيد حذف الطالب؟')) return;
             await fetch(`/api/students/${id}`, { method: 'DELETE' });
             loadStudents();
         }
 
-        // عرض نافذة إحصائيات الطالب للمحضر
         async function showStudentStats(student) {
             document.getElementById('modal-student-name').innerText = student.name;
             const res = await fetch(`/api/students/${student.id}/stats`);
             const stats = await res.json();
 
-            document.getElementById('st-absent-week').innerText = stats.absent_week;
-            document.getElementById('st-absent-month').innerText = stats.absent_month;
-            document.getElementById('st-excused-week').innerText = stats.excused_week;
-            document.getElementById('st-excused-month').innerText = stats.excused_month;
+            document.getElementById('st-absent').innerText = stats.absent_count;
+            document.getElementById('st-excused').innerText = stats.excused_count;
 
             document.getElementById('stats-modal').classList.remove('hidden');
         }
@@ -349,7 +342,7 @@
                 const card = document.createElement('div');
                 card.className = 'student-card';
                 card.innerHTML = `
-                    <div class="student-info" onclick='showStudentStats(${JSON.stringify(student)})' title="اضغط لعرض إحصائيات الطالب">
+                    <div class="student-info" onclick='showStudentStats(${JSON.stringify(student)})'>
                         <i class="fa-solid fa-user-graduate"></i>
                         <div>
                             <span>${student.name}</span>
