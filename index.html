@@ -12,13 +12,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #10b981;
-            --primary-hover: #059669;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.85);
-            --border: rgba(255, 255, 255, 0.1);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
+            --primary-emerald: #10b981;
+            --primary-glow: #34d399;
+            --bg-gradient: radial-gradient(circle at center, #1b4d3e 0%, #0d2921 70%, #081a15 100%);
+            --card-bg: rgba(16, 44, 36, 0.75);
+            --card-border: rgba(52, 211, 153, 0.2);
+            --text-main: #ffffff;
+            --text-muted: #a7f3d0;
             --present: #10b981;
             --absent: #ef4444;
             --excused: #f59e0b;
@@ -29,21 +29,53 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
         
         body { 
-            background: radial-gradient(circle at top right, #1e293b, #0f172a); 
-            color: var(--text); 
+            background: var(--bg-gradient); 
+            color: var(--text-main); 
             min-height: 100vh; 
-            padding: 1.5rem 1rem;
+            padding: 1rem;
             overflow-x: hidden;
+        }
+
+        /* شريط علوي يطابق التصميم */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 31, 25, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            padding: 0.7rem 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--primary-glow);
+        }
+
+        .nav-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .badge-date {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--card-border);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            color: var(--text-muted);
         }
 
         @keyframes fadeInScale {
             from { opacity: 0; transform: scale(0.95) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        @keyframes mosquePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.06); }
         }
 
         @keyframes slideInUp {
@@ -52,80 +84,75 @@
         }
 
         .container { 
-            max-width: 900px; 
+            max-width: 1000px; 
             margin: 0 auto; 
             animation: slideInUp 0.5s var(--transition-smooth);
         }
 
         .portal-overlay { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-            background: rgba(15, 23, 42, 0.92); 
-            backdrop-filter: blur(16px); 
+            background: var(--bg-gradient);
             display: flex; justify-content: center; align-items: center; 
             z-index: 999; padding: 1rem; 
-            transition: opacity 0.3s ease;
         }
 
         .portal-card { 
             background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            border-radius: 24px; 
+            border: 1px solid var(--card-border); 
+            backdrop-filter: blur(16px);
+            border-radius: 28px; 
             padding: 2.5rem 2rem; 
             text-align: center; 
             max-width: 480px; width: 100%; 
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); 
             animation: fadeInScale 0.4s var(--transition-smooth);
         }
 
-        .mosque-icon { 
-            font-size: 3.8rem; 
-            margin-bottom: 0.5rem; 
-            display: inline-block; 
-            animation: mosquePulse 3s infinite ease-in-out;
+        .mosque-icon-box {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 2px solid var(--primary-glow);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem auto;
+            font-size: 2.5rem;
+            color: var(--primary-glow);
         }
 
-        .portal-card h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem; font-weight: 800; }
-        .portal-card p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+        .portal-card h2 { font-size: 2rem; color: #fff; margin-bottom: 0.3rem; font-weight: 800; }
+        .portal-card p { color: var(--text-muted); margin-bottom: 1.8rem; font-size: 0.95rem; }
         
-        .portal-btns { display: flex; flex-direction: column; gap: 0.9rem; }
+        .portal-btns { display: flex; flex-direction: column; gap: 1rem; }
         
         .portal-btn { 
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid var(--border); 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--card-border); 
             color: #fff; 
-            padding: 1rem; 
-            border-radius: 14px; 
+            padding: 1.1rem 1.4rem; 
+            border-radius: 18px; 
             font-size: 1.05rem; 
             font-weight: 700; 
             cursor: pointer; 
             transition: all 0.25s var(--transition-smooth); 
-            display: flex; align-items: center; justify-content: center; gap: 0.7rem; 
+            display: flex; align-items: center; justify-content: space-between;
         }
 
         .portal-btn:hover { 
-            background: var(--primary); 
-            border-color: var(--primary); 
+            background: rgba(16, 185, 129, 0.25); 
+            border-color: var(--primary-glow); 
             transform: translateY(-3px); 
-            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.25);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
         }
-
-        .portal-btn:active { transform: translateY(-1px); }
-
-        .ring-select-btn { 
-            background: rgba(16, 185, 129, 0.08); 
-            border: 1px solid rgba(16, 185, 129, 0.3); 
-            padding: 1.2rem; 
-            font-size: 1.15rem; 
-        }
-
-        .ring-select-btn:hover { background: var(--primary); color: white; }
 
         .custom-input, select { 
             width: 100%; 
-            background: rgba(15, 23, 42, 0.8); 
-            border: 1px solid var(--border); 
-            padding: 0.8rem 1rem; 
-            border-radius: 10px; 
+            background: rgba(8, 26, 21, 0.8); 
+            border: 1px solid var(--card-border); 
+            padding: 0.85rem 1rem; 
+            border-radius: 12px; 
             color: #fff; 
             font-size: 1rem; 
             outline: none; 
@@ -135,186 +162,226 @@
         }
 
         .custom-input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 15px rgba(52, 211, 153, 0.3);
         }
 
         .hidden { display: none !important; }
 
-        header { text-align: center; margin-bottom: 1.5rem; }
-        header h1 { font-size: 2rem; color: var(--primary); font-weight: 800; }
-        
-        .active-ring-badge { 
-            display: inline-block; 
-            background: rgba(16, 185, 129, 0.15); 
-            color: var(--primary); 
-            border: 1px solid var(--primary); 
-            padding: 0.4rem 1.4rem; 
-            border-radius: 20px; 
-            font-size: 1.1rem; 
-            font-weight: 800; 
-            margin-top: 0.4rem; 
-            transition: transform 0.3s ease;
+        .page-header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.5rem;
         }
 
         .controls-card { 
             background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            padding: 1rem; 
-            border-radius: 16px; 
-            margin-bottom: 1.2rem; 
+            border: 1px solid var(--card-border); 
+            backdrop-filter: blur(12px);
+            padding: 1.2rem; 
+            border-radius: 20px; 
+            margin-bottom: 1.5rem; 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-            gap: 0.8rem; 
+            gap: 1rem; 
         }
 
-        .control-group { text-align: right; }
-        .control-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
+        .control-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 0.3rem; }
 
         .days-bar { 
-            display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; 
-            background: var(--card-bg); padding: 0.6rem; border-radius: 16px; border: 1px solid var(--border); 
+            display: flex; gap: 0.6rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; 
+            background: var(--card-bg); padding: 0.8rem; border-radius: 20px; border: 1px solid var(--card-border); 
         }
 
         .day-btn { 
             background: rgba(255,255,255,0.05); 
-            border: 1px solid var(--border); 
-            color: var(--text); 
-            padding: 0.5rem 1rem; 
-            border-radius: 10px; 
+            border: 1px solid var(--card-border); 
+            color: var(--text-main); 
+            padding: 0.6rem 1.4rem; 
+            border-radius: 12px; 
             cursor: pointer; 
             font-weight: 700; 
             transition: all 0.25s var(--transition-smooth); 
         }
 
-        .day-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
-        .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .day-btn:hover { background: rgba(52, 211, 153, 0.15); transform: translateY(-2px); }
+        .day-btn.active { 
+            background: var(--primary-emerald); 
+            border-color: var(--primary-glow); 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); 
+        }
 
-        .stats-title { font-size: 0.95rem; color: var(--primary); font-weight: 700; margin-bottom: 0.6rem; text-align: center; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.8rem; margin-bottom: 1.2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.9rem; margin-bottom: 1.5rem; }
         .stat-card { 
             background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            padding: 0.8rem; 
-            border-radius: 12px; 
+            border: 1px solid var(--card-border); 
+            padding: 1rem; 
+            border-radius: 16px; 
             text-align: center; 
-            transition: transform 0.25s ease;
         }
-        .stat-card:hover { transform: translateY(-3px); }
-        .stat-card h3 { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
-        .stat-card .count { font-size: 1.5rem; font-weight: 800; }
+        .stat-card h3 { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+        .stat-card .count { font-size: 1.6rem; font-weight: 800; }
 
-        .add-student-box { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; display: flex; gap: 0.8rem; }
-        .add-student-box input { flex: 1; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); padding: 0.7rem 1rem; border-radius: 8px; color: #fff; outline: none; font-size: 0.95rem; }
-        .add-student-box button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.2s ease, transform 0.2s ease; }
-        .add-student-box button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .add-student-box { 
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border); 
+            padding: 0.9rem; 
+            border-radius: 16px; 
+            margin-bottom: 1.5rem; 
+            display: flex; gap: 0.8rem; 
+        }
 
-        .students-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .add-student-box input { 
+            flex: 1; 
+            background: rgba(8, 26, 21, 0.6); 
+            border: 1px solid var(--card-border); 
+            padding: 0.8rem 1.2rem; 
+            border-radius: 10px; 
+            color: #fff; 
+            outline: none; 
+            font-size: 1rem; 
+        }
+
+        .add-student-box button { 
+            background: var(--primary-emerald); 
+            color: white; 
+            border: none; 
+            padding: 0.8rem 1.5rem; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            transition: all 0.2s ease; 
+        }
+
+        .add-student-box button:hover { background: #059669; transform: translateY(-2px); }
+
+        .students-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 1rem; 
+        }
         
         .student-card { 
             background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            padding: 0.9rem 1.2rem; 
-            border-radius: 12px; 
-            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; 
+            border: 1px solid var(--card-border); 
+            padding: 1.2rem; 
+            border-radius: 18px; 
+            display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; 
             transition: all 0.25s var(--transition-smooth);
-            animation: slideInUp 0.3s var(--transition-smooth);
+            position: relative;
         }
 
         .student-card:hover { 
-            border-color: rgba(16, 185, 129, 0.4); 
-            transform: translateX(-3px); 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+            border-color: var(--primary-glow); 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); 
         }
 
-        .student-info { display: flex; align-items: center; gap: 0.7rem; font-weight: 700; cursor: pointer; transition: color 0.2s ease; }
-        .student-info:hover { color: var(--primary); }
-        .reason-tag { font-size: 0.75rem; color: var(--excused); display: block; margin-top: 0.2rem; font-weight: 500; }
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .attendance-btns { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+        .student-name { font-size: 1.15rem; font-weight: 800; color: #fff; cursor: pointer; }
+        .student-name:hover { color: var(--primary-glow); }
+
+        .attendance-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
         .status-btn { 
             background: rgba(255, 255, 255, 0.05); 
-            border: 1px solid var(--border); 
-            color: var(--text); 
-            padding: 0.4rem 0.7rem; 
+            border: 1px solid var(--card-border); 
+            color: var(--text-main); 
+            padding: 0.5rem 0.3rem; 
             border-radius: 8px; 
             cursor: pointer; 
             font-size: 0.8rem; 
             font-weight: 700; 
+            text-align: center;
             transition: all 0.2s ease; 
         }
         
-        .status-btn:hover { transform: translateY(-2px); }
-        .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; box-shadow: 0 0 10px rgba(16,185,129,0.4); }
-        .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; box-shadow: 0 0 10px rgba(239,68,68,0.4); }
-        .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; box-shadow: 0 0 10px rgba(245,158,11,0.4); }
+        .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; }
+        .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; }
+        .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; }
         .status-btn.unmarked.active { background: var(--unmarked); border-color: var(--unmarked); color: white; }
 
         .modal-box { 
             background: var(--card-bg); 
-            border: 1px solid var(--border); 
-            border-radius: 20px; 
-            padding: 1.8rem; 
+            border: 1px solid var(--card-border); 
+            border-radius: 24px; 
+            padding: 2rem; 
             width: 90%; 
             max-width: 420px; 
             text-align: center; 
-            animation: fadeInScale 0.3s var(--transition-smooth);
         }
 
-        .stats-badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.2rem 0; }
-        .badge-box { background: rgba(15,23,42,0.6); padding: 0.9rem; border-radius: 12px; border: 1px solid var(--border); }
-        .action-btns-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .action-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
     </style>
 </head>
 <body>
 
-    <!-- Portal Selection & Ring Choice Overlay -->
+    <!-- Portal Selection Overlay -->
     <div class="portal-overlay" id="portal-modal">
         <div class="portal-card">
-            <span class="mosque-icon">🕌</span>
+            <div class="mosque-icon-box">🕌</div>
             <h2>جامع الشقيحي</h2>
-            <p>نظام تحضير الحلقات (التقويم الهجري)</p>
+            <p>نظام تحضير الحلقات القرآنية</p>
 
             <!-- الشاشة الأولى: اختيار نوع الدخول -->
             <div id="portal-main" class="portal-btns">
-                <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> دخول المحضر</button>
-                <button class="portal-btn" onclick="showStudentSearchForm()"><i class="fa-solid fa-user-graduate"></i> الطالب / ولي الأمر</button>
+                <button class="portal-btn" onclick="showPasscodeForm()">
+                    <span><i class="fa-solid fa-chalkboard-user"></i> دخول المحضر / المسمّع</span>
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="portal-btn" onclick="showStudentSearchForm()">
+                    <span><i class="fa-solid fa-user-graduate"></i> الطالب / ولي الأمر</span>
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
             </div>
 
-            <!-- الشاشة الثانية: إدخال رمز المرور -->
+            <!-- الشاشة الثانية: رمز المرور -->
             <div id="passcode-form" class="hidden">
                 <p>أدخل رمز دخول المحضر:</p>
                 <input type="tel" id="passcode-input" class="custom-input" placeholder="••••••" maxlength="6" inputmode="numeric">
-                <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
-                    <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="verifyPasscode()">دخول</button>
-                    <button class="portal-btn" style="flex:1;" onclick="resetPortal()">إلغاء</button>
+                <div style="display:flex; gap:0.8rem; margin-top:1.5rem;">
+                    <button class="portal-btn" style="flex:1; justify-content:center; background:var(--primary-emerald);" onclick="verifyPasscode()">دخول</button>
+                    <button class="portal-btn" style="flex:1; justify-content:center;" onclick="resetPortal()">إلغاء</button>
                 </div>
             </div>
 
-            <!-- الشاشة الثالثة: اختيار الحلقة بأزرار كبيرة -->
+            <!-- الشاشة الثالثة: اختيار الحلقة -->
             <div id="ring-selection-form" class="hidden">
-                <h3 style="margin-bottom: 1rem; color: #fff;">اختر الحلقة للتحضير</h3>
+                <h3 style="margin-bottom: 1.2rem; color: #fff;">اختر الحلقة للتحضير</h3>
                 <div class="portal-btns">
-                    <button class="portal-btn ring-select-btn" onclick="selectRing('omar', 'حلقة عمر بن الخطاب')">
-                        <i class="fa-solid fa-book-open"></i> حلقة عمر بن الخطاب
+                    <button class="portal-btn" onclick="selectRing('omar', 'حلقة عمر بن الخطاب')">
+                        <span><i class="fa-solid fa-book-quran"></i> حلقة عمر بن الخطاب</span>
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <button class="portal-btn ring-select-btn" onclick="selectRing('bilal', 'حلقة بلال بن رباح')">
-                        <i class="fa-solid fa-book-open"></i> حلقة بلال بن رباح
+                    <button class="portal-btn" onclick="selectRing('bilal', 'حلقة بلال بن رباح')">
+                        <span><i class="fa-solid fa-book-quran"></i> حلقة بلال بن رباح</span>
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
-                    <button class="portal-btn ring-select-btn" onclick="selectRing('saad', 'حلقة سعد بن أبي وقاص')">
-                        <i class="fa-solid fa-book-open"></i> حلقة سعد بن أبي وقاص
+                    <button class="portal-btn" onclick="selectRing('saad', 'حلقة سعد بن أبي وقاص')">
+                        <span><i class="fa-solid fa-book-quran"></i> حلقة سعد بن أبي وقاص</span>
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
                 </div>
             </div>
 
             <!-- بحث الطلاب -->
             <div id="student-search-form" class="hidden">
-                <p>ابحث باسم الطالب لعرض تفاصيل الحضور:</p>
+                <p>ابحث باسم الطالب لعرض التقرير:</p>
                 <input type="text" id="search-name-input" class="custom-input" placeholder="اسم الطالب...">
-                <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
-                    <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="searchStudent()">بحث</button>
-                    <button class="portal-btn" style="flex:1;" onclick="resetPortal()">إلغاء</button>
+                <div style="display:flex; gap:0.8rem; margin-top:1.5rem;">
+                    <button class="portal-btn" style="flex:1; justify-content:center; background:var(--primary-emerald);" onclick="searchStudent()">بحث</button>
+                    <button class="portal-btn" style="flex:1; justify-content:center;" onclick="resetPortal()">إلغاء</button>
                 </div>
                 <div id="student-result"></div>
             </div>
@@ -324,35 +391,35 @@
     <!-- Modal السبب -->
     <div class="portal-overlay hidden" id="reason-modal">
         <div class="modal-box">
-            <h3>سبب الاستئذان (اختياري)</h3>
-            <input type="text" id="reason-input" class="custom-input" placeholder="مثال: مستأذن للظروف...">
-            <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
-                <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="confirmExcused()">حفظ</button>
-                <button class="portal-btn" style="flex:1;" onclick="closeReasonModal()">تخطي</button>
+            <h3>سبب الاستئذان</h3>
+            <input type="text" id="reason-input" class="custom-input" placeholder="اكتب السبب هنا...">
+            <div style="display:flex; gap:0.8rem; margin-top:1.5rem;">
+                <button class="portal-btn" style="flex:1; justify-content:center; background:var(--primary-emerald);" onclick="confirmExcused()">حفظ</button>
+                <button class="portal-btn" style="flex:1; justify-content:center;" onclick="closeReasonModal()">تخطي</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal إحصائيات الطالب -->
-    <div class="portal-overlay hidden" id="stats-modal">
-        <div class="modal-box">
-            <h3 id="modal-student-name" style="color:var(--primary);">إحصائيات الطالب</h3>
-            <div class="stats-badge-grid">
-                <div class="badge-box"><p style="color:var(--absent)">إجمالي الغياب</p><h2 id="st-absent" style="color:var(--absent)">0</h2></div>
-                <div class="badge-box"><p style="color:var(--excused)">إجمالي الاستئذان</p><h2 id="st-excused" style="color:var(--excused)">0</h2></div>
-            </div>
-            <button class="portal-btn" style="width:100%" onclick="closeStatsModal()">إغلاق</button>
         </div>
     </div>
 
     <!-- Admin View -->
     <div class="container hidden" id="admin-view">
-        <header>
-            <h1>🕌 جامع الشقيحي</h1>
-            <div class="active-ring-badge" id="active-ring-name">حلقة عمر بن الخطاب</div>
-        </header>
+        
+        <!-- Navbar -->
+        <div class="top-navbar">
+            <div class="nav-brand">
+                <span>🕌</span>
+                <span>جامع الشقيحي</span>
+            </div>
+            <div class="nav-info">
+                <span class="badge-date" id="nav-ring-display">حلقة عمر بن الخطاب</span>
+                <button class="portal-btn" style="padding: 0.4rem 0.8rem; font-size:0.85rem;" onclick="logout()">خروج <i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </div>
 
-        <!-- Controls Selection Hijri -->
+        <div class="page-header">
+            <h1>معلومات وإحصائيات الطلاب</h1>
+        </div>
+
+        <!-- Controls Selection -->
         <div class="controls-card">
             <div class="control-group">
                 <label>السنة الهجرية</label>
@@ -381,10 +448,10 @@
             <div class="control-group">
                 <label>الأسبوع</label>
                 <select id="week-select" onchange="onControlChange()">
-                    <option value="1">الأسبوع الأول (1)</option>
-                    <option value="2" selected>الأسبوع الثاني (2)</option>
-                    <option value="3">الأسبوع الثالث (3)</option>
-                    <option value="4">الأسبوع الرابع (4)</option>
+                    <option value="1">الأسبوع الأول</option>
+                    <option value="2" selected>الأسبوع الثاني</option>
+                    <option value="3">الأسبوع الثالث</option>
+                    <option value="4">الأسبوع الرابع</option>
                 </select>
             </div>
         </div>
@@ -398,8 +465,7 @@
             <button class="day-btn" onclick="switchDay('الخميس')">الخميس</button>
         </div>
 
-        <!-- Weekly & Monthly Stats Display -->
-        <div class="stats-title" id="stats-title-label">إحصائيات الأسبوع (2) - شهر ربيع الأول لعام 1448 هـ</div>
+        <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card"><h3>إجمالي الطلاب</h3><div class="count" id="total-count">0</div></div>
             <div class="stat-card"><h3>الحاضرون</h3><div class="count" style="color: var(--present);" id="present-count">0</div></div>
@@ -408,32 +474,21 @@
             <div class="stat-card"><h3>لم يتم التحضير</h3><div class="count" style="color: var(--unmarked);" id="unmarked-count">0</div></div>
         </div>
 
-        <!-- حقل إضافة طالب مع دعم Enter وAuto-Focus -->
+        <!-- حقل إضافة طالب مع إبقاء التركيز والإنتر -->
         <div class="add-student-box">
-            <input type="text" id="student-name-input" placeholder="أدخل اسم الطالب الجديد واضغط Enter..." onkeydown="handleInputKeyDown(event)">
+            <input type="text" id="student-name-input" placeholder="أدخل اسم الطالب واضغط Enter لإضافته..." onkeydown="handleInputKeyDown(event)">
             <button onclick="addStudent()"><i class="fa-solid fa-plus"></i> إضافة</button>
         </div>
 
-        <div class="action-btns-bar">
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-                <button class="portal-btn" style="background:rgba(16,185,129,0.15); color:var(--primary); border-color:var(--primary); padding:0.5rem 0.9rem; font-size:0.85rem;" onclick="setAllPresent()">
-                    <i class="fa-solid fa-check-double"></i> تحضير الكل "حاضر"
-                </button>
-                <button class="portal-btn" style="background:rgba(100,116,139,0.2); color:var(--text-muted); border-color:var(--unmarked); padding:0.5rem 0.9rem; font-size:0.85rem;" onclick="setAllUnmarked()">
-                    <i class="fa-solid fa-rotate-left"></i> إعادة ضبط "لم يتم التحضير"
-                </button>
-            </div>
+        <div class="action-bar">
             <div style="display:flex; gap:0.5rem;">
-                <button class="portal-btn" style="padding:0.4rem 0.8rem; font-size:0.85rem; background:rgba(255,255,255,0.1);" onclick="backToRings()">
-                    <i class="fa-solid fa-arrows-rotate"></i> تغيير الحلقة
-                </button>
-                <button class="portal-btn" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onclick="logout()">
-                    <i class="fa-solid fa-right-from-bracket"></i> خروج
-                </button>
+                <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem; background:rgba(16,185,129,0.2);" onclick="setAllPresent()">تحضير الكل "حاضر"</button>
+                <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem;" onclick="setAllUnmarked()">إعادة ضبط الكل</button>
             </div>
+            <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem;" onclick="backToRings()">تغيير الحلقة</button>
         </div>
 
-        <div class="students-list" id="students-container"></div>
+        <div class="students-grid" id="students-container"></div>
     </div>
 
     <script>
@@ -442,27 +497,14 @@
         let allStudents = [];
         let activeStudentForReason = null;
 
-        function setInitialBaseDate() {
-            document.getElementById('year-select').value = "1448";
-            document.getElementById('month-select').value = "3";
-            document.getElementById('week-select').value = "2";
-            currentDay = 'الاثنين';
-
-            document.querySelectorAll('.day-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText.trim() === currentDay);
-            });
-        }
-
         window.onload = () => {
-            setInitialBaseDate();
-
             const role = localStorage.getItem('portal_role');
             const savedRing = localStorage.getItem('portal_ring');
             const savedRingName = localStorage.getItem('portal_ring_name');
 
             if (role === 'admin' && savedRing) {
                 currentRing = savedRing;
-                document.getElementById('active-ring-name').innerText = savedRingName || 'الحلقة المختارة';
+                document.getElementById('nav-ring-display').innerText = savedRingName || 'الحلقة المختارة';
                 document.getElementById('portal-modal').classList.add('hidden');
                 document.getElementById('admin-view').classList.remove('hidden');
                 loadStudents();
@@ -485,9 +527,6 @@
         }
 
         function onControlChange() {
-            const period = getSelectedPeriod();
-            const monthText = document.getElementById('month-select').options[document.getElementById('month-select').selectedIndex].text;
-            document.getElementById('stats-title-label').innerText = `إحصائيات الأسبوع (${period.week}) - شهر ${monthText} لعام ${period.year} هـ`;
             loadStudents();
         }
 
@@ -497,7 +536,7 @@
                 const res = await fetch(`/api/students?day=${currentDay}&year=${year}&month=${month}&week=${week}`);
                 allStudents = await res.json();
                 render();
-            } catch (err) { console.error('خطأ في جلب البيانات:', err); }
+            } catch (err) { console.error('خطأ في البيانات:', err); }
         }
 
         function switchDay(dayName) {
@@ -523,7 +562,6 @@
             document.getElementById('ring-selection-form').classList.add('hidden');
             document.getElementById('student-search-form').classList.add('hidden');
             document.getElementById('portal-main').classList.remove('hidden');
-            document.getElementById('student-result').innerHTML = '';
         }
 
         function verifyPasscode() {
@@ -538,7 +576,7 @@
             currentRing = ringKey;
             localStorage.setItem('portal_ring', ringKey);
             localStorage.setItem('portal_ring_name', ringDisplayName);
-            document.getElementById('active-ring-name').innerText = ringDisplayName;
+            document.getElementById('nav-ring-display').innerText = ringDisplayName;
             document.getElementById('portal-modal').classList.add('hidden');
             document.getElementById('admin-view').classList.remove('hidden');
             loadStudents();
@@ -557,42 +595,6 @@
             location.reload();
         }
 
-        async function searchStudent() {
-            const nameQuery = document.getElementById('search-name-input').value.trim().toLowerCase();
-            const resultBox = document.getElementById('student-result');
-            if (!nameQuery) return;
-
-            const found = allStudents.filter(s => s.name.toLowerCase().includes(nameQuery));
-            if (found.length === 0) {
-                resultBox.innerHTML = `<p style="margin-top:1rem; color:var(--absent);">لم يتم العثور على طالب.</p>`;
-                return;
-            }
-
-            resultBox.innerHTML = '';
-            for (let student of found) {
-                const { year, month } = getSelectedPeriod();
-                const statsRes = await fetch(`/api/students/${student.id}/stats?year=${year}&month=${month}`);
-                const stats = await statsRes.json();
-
-                const statusText = student.status === 'present' ? 'حاضر ✅' : 
-                                  student.status === 'absent' ? 'غائب ❌' : 
-                                  student.status === 'excused' ? 'مستأذن ⚠️' : 'لم يتم التحضير ⚪';
-
-                resultBox.innerHTML += `
-                    <div style="background:rgba(15,23,42,0.8); padding:1.2rem; border-radius:14px; margin-top:1rem; border:1px solid var(--border); text-align:right;">
-                        <h4 style="color:var(--primary);">${student.name}</h4>
-                        <p style="font-size:0.9rem; margin-top:0.3rem;">حالة يوم (${currentDay}): <b>${statusText}</b></p>
-                        ${student.reason ? `<p style="font-size:0.85rem; color:var(--excused);">السبب: ${student.reason}</p>` : ''}
-                        <hr style="border-color:var(--border); margin:0.8rem 0;">
-                        <div style="display:flex; justify-content:space-around; text-align:center; font-size:0.85rem;">
-                            <span>غياب الشهر: <b style="color:var(--absent);">${stats.absent_count}</b></span>
-                            <span>استئذان الشهر: <b style="color:var(--excused);">${stats.excused_count}</b></span>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
         async function addStudent() {
             const inputField = document.getElementById('student-name-input');
             const name = inputField.value.trim();
@@ -606,7 +608,7 @@
             });
 
             inputField.value = '';
-            inputField.focus(); // إبقاء مؤشر الكتابة داخل الحقل
+            inputField.focus();
             loadStudents();
         }
 
@@ -659,25 +661,9 @@
         }
 
         async function deleteStudent(id) {
-            if (!confirm('تأكيد حذف الطالب نهائياً من قاعدة البيانات؟')) return;
+            if (!confirm('هل تريد حذف الطالب؟')) return;
             await fetch(`/api/students/${id}`, { method: 'DELETE' });
             loadStudents();
-        }
-
-        async function showStudentStats(student) {
-            document.getElementById('modal-student-name').innerText = student.name;
-            const { year, month } = getSelectedPeriod();
-            const res = await fetch(`/api/students/${student.id}/stats?year=${year}&month=${month}`);
-            const stats = await res.json();
-
-            document.getElementById('st-absent').innerText = stats.absent_count;
-            document.getElementById('st-excused').innerText = stats.excused_count;
-
-            document.getElementById('stats-modal').classList.remove('hidden');
-        }
-
-        function closeStatsModal() {
-            document.getElementById('stats-modal').classList.add('hidden');
         }
 
         function render() {
@@ -689,21 +675,15 @@
                 const card = document.createElement('div');
                 card.className = 'student-card';
                 card.innerHTML = `
-                    <div class="student-info" onclick='showStudentStats(${JSON.stringify(student)})'>
-                        <i class="fa-solid fa-user-graduate"></i>
-                        <div>
-                            <span>${student.name}</span>
-                            ${student.status === 'excused' && student.reason ? `<span class="reason-tag"><i class="fa-solid fa-info-circle"></i> ${student.reason}</span>` : ''}
-                        </div>
+                    <div class="student-header">
+                        <span class="student-name">${student.name}</span>
+                        <button onclick="deleteStudent(${student.id})" style="background:none; border:none; color:var(--absent); cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <div class="attendance-btns">
-                            <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" onclick="setStatus(${student.id}, 'present')">حاضر</button>
-                            <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" onclick="setStatus(${student.id}, 'absent')">غائب</button>
-                            <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
-                            <button class="status-btn unmarked ${student.status === 'unmarked' ? 'active' : ''}" onclick="setStatus(${student.id}, 'unmarked')">لم يحضر</button>
-                        </div>
-                        <button onclick="deleteStudent(${student.id})" style="background:none; border:none; color:var(--absent); cursor:pointer; font-size:1.1rem; padding:0.2rem;"><i class="fa-solid fa-trash"></i></button>
+                    <div class="attendance-btns">
+                        <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" onclick="setStatus(${student.id}, 'present')">حاضر</button>
+                        <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" onclick="setStatus(${student.id}, 'absent')">غائب</button>
+                        <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
+                        <button class="status-btn unmarked ${student.status === 'unmarked' ? 'active' : ''}" onclick="setStatus(${student.id}, 'unmarked')">لم يحدد</button>
                     </div>
                 `;
                 container.appendChild(card);
