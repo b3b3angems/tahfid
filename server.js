@@ -12,7 +12,6 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// إنشاء الجداول
 pool.query(`
   CREATE TABLE IF NOT EXISTS students (
     id SERIAL PRIMARY KEY,
@@ -27,9 +26,8 @@ pool.query(`
     reason TEXT DEFAULT '',
     UNIQUE(student_id, day_name)
   );
-`);
+`).catch(err => console.error('DB Init Error:', err));
 
-// عرض الصفحة الرئيسية
 app.get('/', (req, res) => {
   const publicPath = path.join(__dirname, 'public', 'index.html');
   const rootPath = path.join(__dirname, 'index.html');
@@ -38,7 +36,7 @@ app.get('/', (req, res) => {
   else res.status(404).send('Index file not found');
 });
 
-// جلب الطلاب بحسب اليوم المحدد
+// إحضار جميع الطلاب مع دمج حالات حضورهم إن وجدت
 app.get('/api/students', async (req, res) => {
   const day = req.query.day || 'الأحد';
   try {
@@ -52,10 +50,12 @@ app.get('/api/students', async (req, res) => {
     `;
     const result = await pool.query(query, [day]);
     res.json(result.rows);
-  } catch (err) { res.status(500).send(err.message); }
+  } catch (err) { 
+    console.error(err);
+    res.status(500).send(err.message); 
+  }
 });
 
-// إضافة طالب جديد
 app.post('/api/students', async (req, res) => {
   const { name, ring, day } = req.body;
   const currentDay = day || 'الأحد';
@@ -67,7 +67,6 @@ app.post('/api/students', async (req, res) => {
   } catch (err) { res.status(500).send(err.message); }
 });
 
-// تحديث حالة الحضور والسبب
 app.put('/api/attendance', async (req, res) => {
   const { student_id, day, status, reason } = req.body;
   try {
@@ -82,7 +81,6 @@ app.put('/api/attendance', async (req, res) => {
   } catch (err) { res.status(500).send(err.message); }
 });
 
-// تحضير الجميع "حاضر" لليوم المحدد
 app.post('/api/attendance/all-present', async (req, res) => {
   const { ring, day } = req.body;
   try {
@@ -98,7 +96,6 @@ app.post('/api/attendance/all-present', async (req, res) => {
   } catch (err) { res.status(500).send(err.message); }
 });
 
-// حذف طالب
 app.delete('/api/students/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM students WHERE id = $1', [req.params.id]);
@@ -106,7 +103,6 @@ app.delete('/api/students/:id', async (req, res) => {
   } catch (err) { res.status(500).send(err.message); }
 });
 
-// جلب إحصائيات الطالب
 app.get('/api/students/:id/stats', async (req, res) => {
   const studentId = req.params.id;
   try {

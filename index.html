@@ -38,8 +38,9 @@
 
         header { text-align: center; margin-bottom: 1.5rem; }
         header h1 { font-size: 2.2rem; color: var(--primary); font-weight: 800; }
+        
+        .week-range { text-align: center; color: var(--primary); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.8rem; background: rgba(16,185,129,0.1); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(16,185,129,0.2); }
 
-        /* شريط أزرار أيام الأسبوع */
         .days-bar { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; background: var(--card-bg); padding: 0.6rem; border-radius: 16px; border: 1px solid var(--border); }
         .day-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; }
         .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
@@ -88,7 +89,6 @@
                 <button class="portal-btn" onclick="showStudentSearchForm()"><i class="fa-solid fa-user-graduate"></i> الطالب / ولي الأمر</button>
             </div>
 
-            <!-- Passcode Form -->
             <div id="passcode-form" class="hidden">
                 <p>أدخل رمز دخول المحضر:</p>
                 <input type="tel" id="passcode-input" class="custom-input" placeholder="••••••" maxlength="6" inputmode="numeric">
@@ -98,7 +98,6 @@
                 </div>
             </div>
 
-            <!-- Student Search Form -->
             <div id="student-search-form" class="hidden">
                 <p>ابحث باسم الطالب لعرض تفاصيل الحضور:</p>
                 <input type="text" id="search-name-input" class="custom-input" placeholder="اسم الطالب...">
@@ -142,6 +141,9 @@
             <p>سجل الحضور الأسبوعي</p>
         </header>
 
+        <!-- Week Range Display -->
+        <div class="week-range" id="week-range"></div>
+
         <!-- Days Selector Bar -->
         <div class="days-bar">
             <button class="day-btn active" onclick="switchDay('الأحد')">الأحد</button>
@@ -171,7 +173,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
             <button class="portal-btn" style="background:rgba(16,185,129,0.15); color:var(--primary); border-color:var(--primary); padding:0.5rem 1rem; font-size:0.9rem;" onclick="setAllPresent()"><i class="fa-solid fa-check-double"></i> تحضير الكل "حاضر"</button>
-            <button class="portal-btn" style="padding:0.4rem 0.9rem; font-size:0.85rem;" onclick="location.reload()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+            <button class="portal-btn" style="padding:0.4rem 0.9rem; font-size:0.85rem;" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
         </div>
 
         <div class="students-list" id="students-container"></div>
@@ -183,12 +185,39 @@
         let allStudents = [];
         let activeStudentForReason = null;
 
+        window.onload = () => {
+            displayWeekRange();
+            const role = localStorage.getItem('portal_role');
+            if (role === 'admin') {
+                document.getElementById('portal-modal').classList.add('hidden');
+                document.getElementById('admin-view').classList.remove('hidden');
+            }
+            loadStudents();
+        };
+
+        function displayWeekRange() {
+            const today = new Date();
+            const day = today.getDay(); // 0 is Sunday
+            
+            const sunday = new Date(today);
+            sunday.setDate(today.getDate() - day);
+            
+            const thursday = new Date(sunday);
+            thursday.setDate(sunday.getDate() + 4);
+
+            const formatOptions = { day: 'numeric', month: 'long' };
+            const sunStr = sunday.toLocaleDateString('ar-SA', formatOptions);
+            const thuStr = thursday.toLocaleDateString('ar-SA', formatOptions);
+            
+            document.getElementById('week-range').innerText = `أسبوع التحضير: من ${sunStr} إلى ${thuStr}`;
+        }
+
         async function loadStudents() {
             try {
                 const res = await fetch(`/api/students?day=${currentDay}`);
                 allStudents = await res.json();
                 render();
-            } catch (err) { console.error(err); }
+            } catch (err) { console.error('خطأ في جلب البيانات:', err); }
         }
 
         function switchDay(dayName) {
@@ -226,9 +255,16 @@
 
         function verifyPasscode() {
             if (document.getElementById('passcode-input').value === '282834') {
+                localStorage.setItem('portal_role', 'admin');
                 document.getElementById('portal-modal').classList.add('hidden');
                 document.getElementById('admin-view').classList.remove('hidden');
+                loadStudents();
             } else alert('الرمز غير صحيح!');
+        }
+
+        function logout() {
+            localStorage.removeItem('portal_role');
+            location.reload();
         }
 
         async function searchStudent() {
@@ -313,7 +349,7 @@
         }
 
         async function deleteStudent(id) {
-            if (!confirm('تأكيد حذف الطالب؟')) return;
+            if (!confirm('تأكيد حذف الطالب نهائياً من قاعدة البيانات؟')) return;
             await fetch(`/api/students/${id}`, { method: 'DELETE' });
             loadStudents();
         }
@@ -366,8 +402,6 @@
             document.getElementById('absent-count').innerText = filtered.filter(s => s.status === 'absent').length;
             document.getElementById('excused-count').innerText = filtered.filter(s => s.status === 'excused').length;
         }
-
-        window.onload = loadStudents;
     </script>
 </body>
 </html>
