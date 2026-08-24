@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة حلقات تحفيظ القرآن الكريم</title>
+    <title>جامع الشقيحي - نظام إدارة الحلقات</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -11,355 +11,370 @@
             --primary: #10b981;
             --primary-dark: #059669;
             --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
+            --card-bg: rgba(30, 41, 59, 0.85);
             --border: rgba(255, 255, 255, 0.1);
             --text: #f8fafc;
+            --text-muted: #94a3b8;
             --present: #10b981;
             --absent: #ef4444;
             --excused: #f59e0b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Tajawal', sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+        body { background: radial-gradient(circle at top right, #1e293b, #0f172a); color: var(--text); min-height: 100vh; padding: 1.5rem 1rem; }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        body {
-            background: radial-gradient(circle at top right, #1e293b, #0f172a);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 2rem 1rem;
-        }
+        .portal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; z-index: 999; padding: 1rem; }
+        .portal-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem 2rem; text-align: center; max-width: 450px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .mosque-icon { font-size: 3.5rem; margin-bottom: 0.5rem; display: block; }
+        .portal-card h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem; font-weight: 800; }
+        .portal-card p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+        .portal-btns { display: flex; flex-direction: column; gap: 0.8rem; }
+        .portal-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; padding: 0.9rem; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+        .portal-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
+        .custom-input { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 10px; color: #fff; font-size: 1rem; outline: none; margin-top: 0.8rem; text-align: center; }
+        .custom-input:focus { border-color: var(--primary); }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+        .hidden { display: none !important; }
 
-        header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+        header { text-align: center; margin-bottom: 1.5rem; }
+        header h1 { font-size: 2.2rem; color: var(--primary); font-weight: 800; }
+        header p { color: var(--text-muted); font-size: 0.95rem; }
 
-        header h1 {
-            font-size: 2.2rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
+        .date-picker-box { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem 1.2rem; border-radius: 14px; margin-bottom: 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .date-picker-box label { font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
+        .date-picker-box input { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); color: #fff; padding: 0.5rem 0.8rem; border-radius: 8px; outline: none; font-weight: bold; cursor: pointer; }
 
-        /* Ring Selection Tabs */
-        .rings-tabs {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
+        .rings-tabs { display: flex; gap: 0.6rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
+        .tab-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
+        .tab-btn.active { background: var(--primary); border-color: var(--primary); }
 
-        .tab-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 0.8rem 1.5rem;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.8rem; margin-bottom: 1.2rem; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; text-align: center; }
+        .stat-card h3 { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+        .stat-card .count { font-size: 1.5rem; font-weight: 800; }
 
-        .tab-btn:hover, .tab-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-        }
+        .add-student-box { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; display: flex; gap: 0.8rem; }
+        .add-student-box input { flex: 1; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); padding: 0.7rem 1rem; border-radius: 8px; color: #fff; outline: none; font-size: 0.95rem; }
+        .add-student-box button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .add-student-box button:hover { background: var(--primary-dark); }
 
-        /* Stats Section */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+        .students-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .student-card { background: var(--card-bg); border: 1px solid var(--border); padding: 0.9rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; }
+        .student-info { display: flex; align-items: center; gap: 0.7rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .student-info:hover { color: var(--primary); }
+        .student-info i { color: var(--primary); }
+        .reason-tag { font-size: 0.75rem; color: var(--excused); display: block; margin-top: 0.2rem; font-weight: 500; }
 
-        .stat-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 1.2rem;
-            border-radius: 16px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-card h3 {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card .count {
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
-
-        /* Add Student Form */
-        .add-student-box {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-            display: flex;
-            gap: 1rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .add-student-box input {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid var(--border);
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        .add-student-box button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: 0.2s;
-        }
-
-        .add-student-box button:hover {
-            background: var(--primary-dark);
-        }
-
-        /* Students List */
-        .students-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .student-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(10px);
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .student-info {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .attendance-btns {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .status-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
+        .attendance-btns { display: flex; gap: 0.4rem; }
+        .status-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: var(--text); padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: 0.2s; }
         .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; }
         .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; }
         .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; }
 
-        .delete-btn {
-            background: transparent;
-            border: none;
-            color: var(--absent);
-            cursor: pointer;
-            font-size: 1.1rem;
-            margin-right: 0.5rem;
-            opacity: 0.7;
-            transition: 0.2s;
-        }
-
-        .delete-btn:hover { opacity: 1; transform: scale(1.1); }
+        .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+        .stats-badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.2rem 0; }
+        .badge-box { background: rgba(15,23,42,0.6); padding: 0.9rem; border-radius: 12px; border: 1px solid var(--border); }
+        .badge-box p { font-size: 0.8rem; margin-bottom: 0.3rem; }
+        .badge-box h2 { font-size: 1.6rem; font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <!-- Portal Selection Modal -->
+    <div class="portal-overlay" id="portal-modal">
+        <div class="portal-card">
+            <span class="mosque-icon">🕌</span>
+            <h2>جامع الشقيحي</h2>
+            <p>نظام التحضير ومتابعة الحضور اليومي</p>
+
+            <div id="portal-main" class="portal-btns">
+                <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> المحضر</button>
+                <button class="portal-btn" onclick="showStudentSearchForm()"><i class="fa-solid fa-user-graduate"></i> الطالب / ولي الأمر</button>
+            </div>
+
+            <!-- Passcode Form -->
+            <div id="passcode-form" class="hidden">
+                <p>أدخل رمز دخول المحضر:</p>
+                <input type="tel" id="passcode-input" class="custom-input" placeholder="••••••" maxlength="6" inputmode="numeric">
+                <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
+                    <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="verifyPasscode()">دخول</button>
+                    <button class="portal-btn" style="flex:1;" onclick="resetPortal()">إلغاء</button>
+                </div>
+            </div>
+
+            <!-- Student Search Form -->
+            <div id="student-search-form" class="hidden">
+                <p>ابحث باسم الطالب للاطلاع على سجل الحضور:</p>
+                <input type="text" id="search-name-input" class="custom-input" placeholder="اسم الطالب الكامل...">
+                <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
+                    <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="searchStudent()">بحث</button>
+                    <button class="portal-btn" style="flex:1;" onclick="resetPortal()">إلغاء</button>
+                </div>
+                <div id="student-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reason Modal -->
+    <div class="portal-overlay hidden" id="reason-modal">
+        <div class="modal-box">
+            <h3>سبب الاستئذان (اختياري)</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem; margin-top:0.3rem;">يمكنك كتابة سبب الاستئذان لتوثيقه بالسجل</p>
+            <input type="text" id="reason-input" class="custom-input" placeholder="مثال: ظروف عائلية...">
+            <div style="display:flex; gap:0.5rem; margin-top:1.2rem;">
+                <button class="portal-btn" style="flex:1; background:var(--primary);" onclick="confirmExcused()">حفظ</button>
+                <button class="portal-btn" style="flex:1;" onclick="closeReasonModal()">تخطي بدون سبب</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Stats Modal (For Admin) -->
+    <div class="portal-overlay hidden" id="stats-modal">
+        <div class="modal-box">
+            <h3 id="modal-student-name" style="color:var(--primary);">إحصائيات الطالب</h3>
+            <div class="stats-badge-grid">
+                <div class="badge-box"><p style="color:var(--absent)">غياب الأسبوع</p><h2 id="st-absent-week" style="color:var(--absent)">0</h2></div>
+                <div class="badge-box"><p style="color:var(--absent)">غياب الشهر</p><h2 id="st-absent-month" style="color:var(--absent)">0</h2></div>
+                <div class="badge-box"><p style="color:var(--excused)">استئذان الأسبوع</p><h2 id="st-excused-week" style="color:var(--excused)">0</h2></div>
+                <div class="badge-box"><p style="color:var(--excused)">استئذان الشهر</p><h2 id="st-excused-month" style="color:var(--excused)">0</h2></div>
+            </div>
+            <button class="portal-btn" style="width:100%" onclick="closeStatsModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div class="container hidden" id="admin-view">
         <header>
-            <h1><i class="fa-solid =>-quran"></i> نظام تحفيظ القرآن الكريم</h1>
-            <p>إدارة الحضور والغياب اليومي للحلقات</p>
+            <h1>🕌 جامع الشقيحي</h1>
+            <p>لوحة تحضير الطلاب ومتابعة الحلقات</p>
         </header>
 
-        <!-- Tabs -->
+        <!-- Date Picker Control -->
+        <div class="date-picker-box">
+            <label for="selected-date"><i class="fa-solid fa-calendar-days" style="color:var(--primary);"></i> عرض سجل يوم:</label>
+            <input type="date" id="selected-date" onchange="loadStudents()">
+        </div>
+
         <div class="rings-tabs">
             <button class="tab-btn active" onclick="switchRing('omar')">حلقة عمر بن الخطاب</button>
             <button class="tab-btn" onclick="switchRing('bilal')">حلقة بلال بن رباح</button>
             <button class="tab-btn" onclick="switchRing('saad')">حلقة سعد بن أبي وقاص</button>
         </div>
 
-        <!-- Stats -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <h3>إجمالي الطلاب</h3>
-                <div class="count" id="total-count">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>الحاضرون</h3>
-                <div class="count" style="color: var(--present);" id="present-count">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>الغائبون</h3>
-                <div class="count" style="color: var(--absent);" id="absent-count">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>المستأذنون</h3>
-                <div class="count" style="color: var(--excused);" id="excused-count">0</div>
-            </div>
+            <div class="stat-card"><h3>إجمالي الطلاب</h3><div class="count" id="total-count">0</div></div>
+            <div class="stat-card"><h3>الحاضرون</h3><div class="count" style="color: var(--present);" id="present-count">0</div></div>
+            <div class="stat-card"><h3>الغائبون</h3><div class="count" style="color: var(--absent);" id="absent-count">0</div></div>
+            <div class="stat-card"><h3>المستأذنون</h3><div class="count" style="color: var(--excused);" id="excused-count">0</div></div>
         </div>
 
-        <!-- Add Form -->
         <div class="add-student-box">
             <input type="text" id="student-name-input" placeholder="أدخل اسم الطالب الجديد...">
-            <button onclick="addStudent()"><i class="fa-solid fa-plus"></i> إضافة طالب</button>
+            <button onclick="addStudent()"><i class="fa-solid fa-plus"></i> إضافة</button>
         </div>
 
-        <!-- List -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <button class="portal-btn" style="background:rgba(16,185,129,0.15); color:var(--primary); border-color:var(--primary); padding:0.5rem 1rem; font-size:0.9rem;" onclick="setAllPresent()"><i class="fa-solid fa-check-double"></i> تحضير الكل "حاضر"</button>
+            <button class="portal-btn" style="padding:0.4rem 0.9rem; font-size:0.85rem;" onclick="location.reload()"><i class="fa-solid fa-right-from-bracket"></i> خروج</button>
+        </div>
+
         <div class="students-list" id="students-container"></div>
     </div>
 
-   <script>
-    let currentRing = 'omar';
-    let allStudents = [];
+    <script>
+        let currentRing = 'omar';
+        let allStudents = [];
+        let activeStudentForReason = null;
 
-    // جلب البيانات من قاعدة البيانات فور فتح الصفحة
-    async function loadStudents() {
-        try {
-            const res = await fetch('/api/students');
-            allStudents = await res.json();
-            render();
-        } catch (err) {
-            console.error("خطأ في جلب البيانات:", err);
+        // تعيين التاريخ الافتراضي ليوم اليوم
+        document.getElementById('selected-date').value = new Date().toISOString().split('T')[0];
+
+        async function loadStudents() {
+            const date = document.getElementById('selected-date').value;
+            try {
+                const res = await fetch(`/api/students?date=${date}`);
+                allStudents = await res.json();
+                render();
+            } catch (err) { console.error(err); }
         }
-    }
 
-    // التنقل بين الحلقات
-    function switchRing(ringKey) {
-        currentRing = ringKey;
-        document.querySelectorAll('.tab-btn').forEach((btn, index) => {
-            btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
-        });
-        render();
-    }
+        function showPasscodeForm() {
+            document.getElementById('portal-main').classList.add('hidden');
+            document.getElementById('passcode-form').classList.remove('hidden');
+        }
 
-    // إضافة طالب جديد وحفظه في قاعدة البيانات
-    async function addStudent() {
-        const input = document.getElementById('student-name-input');
-        const name = input.value.trim();
-        if (!name) return;
+        function showStudentSearchForm() {
+            document.getElementById('portal-main').classList.add('hidden');
+            document.getElementById('student-search-form').classList.remove('hidden');
+        }
 
-        try {
+        function resetPortal() {
+            document.getElementById('passcode-form').classList.add('hidden');
+            document.getElementById('student-search-form').classList.add('hidden');
+            document.getElementById('portal-main').classList.remove('hidden');
+            document.getElementById('student-result').innerHTML = '';
+        }
+
+        function verifyPasscode() {
+            if (document.getElementById('passcode-input').value === '282834') {
+                document.getElementById('portal-modal').classList.add('hidden');
+                document.getElementById('admin-view').classList.remove('hidden');
+            } else alert('الرمز غير صحيح!');
+        }
+
+        // البحث للمستفيد/الطالب
+        async function searchStudent() {
+            const nameQuery = document.getElementById('search-name-input').value.trim().toLowerCase();
+            const resultBox = document.getElementById('student-result');
+            if (!nameQuery) return;
+
+            const found = allStudents.filter(s => s.name.toLowerCase().includes(nameQuery));
+            if (found.length === 0) {
+                resultBox.innerHTML = `<p style="margin-top:1rem; color:var(--absent);">لم يتم العثور على طالب بهذا الاسم.</p>`;
+                return;
+            }
+
+            resultBox.innerHTML = '';
+            for (let student of found) {
+                const statsRes = await fetch(`/api/students/${student.id}/stats`);
+                const stats = await statsRes.json();
+
+                resultBox.innerHTML += `
+                    <div style="background:rgba(15,23,42,0.8); padding:1.2rem; border-radius:14px; margin-top:1rem; border:1px solid var(--border); text-align:right;">
+                        <h4 style="color:var(--primary); font-size:1.1rem; margin-bottom:0.4rem;">${student.name}</h4>
+                        <p style="font-size:0.9rem; margin-bottom:0.3rem;">حالة اليوم: <b>${student.status === 'present' ? 'حاضر ✅' : student.status === 'absent' ? 'غائب ❌' : 'مستأذن ⚠️'}</b></p>
+                        ${student.reason ? `<p style="font-size:0.85rem; color:var(--excused);">السبب: ${student.reason}</p>` : ''}
+                        <hr style="border-color:var(--border); margin:0.8rem 0;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; text-align:center; font-size:0.85rem;">
+                            <div style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:8px;">غياب الأسبوع: <b style="color:var(--absent);">${stats.absent_week}</b></div>
+                            <div style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:8px;">غياب الشهر: <b style="color:var(--absent);">${stats.absent_month}</b></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function switchRing(ringKey) {
+            currentRing = ringKey;
+            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
+            });
+            render();
+        }
+
+        async function addStudent() {
+            const name = document.getElementById('student-name-input').value.trim();
+            const date = document.getElementById('selected-date').value;
+            if (!name) return;
+
             await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, ring: currentRing })
+                body: JSON.stringify({ name, ring: currentRing, date })
             });
-            input.value = '';
-            await loadStudents(); // إعادة جلب القائمة المحدثة
-        } catch (err) {
-            console.error("خطأ في إضافة الطالب:", err);
+
+            document.getElementById('student-name-input').value = '';
+            loadStudents();
         }
-    }
 
-    // حذف طالب من قاعدة البيانات
-    async function deleteStudent(id) {
-        try {
-            await fetch(`/api/students/${id}`, { method: 'DELETE' });
-            await loadStudents(); // إعادة جلب القائمة المحدثة
-        } catch (err) {
-            console.error("خطأ في حذف الطالب:", err);
-        }
-    }
+        async function setStatus(studentId, status, reason = '') {
+            const date = document.getElementById('selected-date').value;
+            if (status === 'excused' && reason === '') {
+                activeStudentForReason = studentId;
+                document.getElementById('reason-modal').classList.remove('hidden');
+                return;
+            }
 
-    // تحديث حالة الحضور في قاعدة البيانات
-    async function setStatus(id, newStatus) {
-        const student = allStudents.find(s => s.id === id);
-        const finalStatus = student.status === newStatus ? null : newStatus;
-
-        try {
-            await fetch(`/api/students/${id}`, {
+            await fetch('/api/attendance', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: finalStatus })
+                body: JSON.stringify({ student_id: studentId, date, status, reason })
             });
-            await loadStudents(); // إعادة جلب القائمة المحدثة
-        } catch (err) {
-            console.error("خطأ في تحديث حالة الطالب:", err);
+            loadStudents();
         }
-    }
 
-    // تحديث الإحصائيات
-    function updateStats(students) {
-        document.getElementById('total-count').innerText = students.length;
-        document.getElementById('present-count').innerText = students.filter(s => s.status === 'present').length;
-        document.getElementById('absent-count').innerText = students.filter(s => s.status === 'absent').length;
-        document.getElementById('excused-count').innerText = students.filter(s => s.status === 'excused').length;
-    }
+        function confirmExcused() {
+            const reason = document.getElementById('reason-input').value.trim();
+            document.getElementById('reason-modal').classList.add('hidden');
+            document.getElementById('reason-input').value = '';
+            setStatus(activeStudentForReason, 'excused', reason || 'بدون ذكر سبب');
+        }
 
-    // عرض الطلاب الخاصين بالحلقة الحالية
-    function render() {
-        const container = document.getElementById('students-container');
-        container.innerHTML = '';
-        const filtered = allStudents.filter(s => s.ring === currentRing);
+        function closeReasonModal() {
+            document.getElementById('reason-modal').classList.add('hidden');
+            setStatus(activeStudentForReason, 'excused', 'بدون ذكر سبب');
+        }
 
-        filtered.forEach(student => {
-            const card = document.createElement('div');
-            card.className = 'student-card';
-            card.innerHTML = `
-                <div class="student-info">
-                    <i class="fa-solid fa-user-graduate"></i>
-                    <span>${student.name}</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <div class="attendance-btns">
-                        <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" onclick="setStatus(${student.id}, 'present')">حاضر</button>
-                        <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" onclick="setStatus(${student.id}, 'absent')">غائب</button>
-                        <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
+        async function setAllPresent() {
+            const date = document.getElementById('selected-date').value;
+            await fetch('/api/attendance/all-present', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ring: currentRing, date })
+            });
+            loadStudents();
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('هل أنت تأكد من حذف هذا الطالب؟')) return;
+            await fetch(`/api/students/${id}`, { method: 'DELETE' });
+            loadStudents();
+        }
+
+        // عرض نافذة إحصائيات الطالب للمحضر
+        async function showStudentStats(student) {
+            document.getElementById('modal-student-name').innerText = student.name;
+            const res = await fetch(`/api/students/${student.id}/stats`);
+            const stats = await res.json();
+
+            document.getElementById('st-absent-week').innerText = stats.absent_week;
+            document.getElementById('st-absent-month').innerText = stats.absent_month;
+            document.getElementById('st-excused-week').innerText = stats.excused_week;
+            document.getElementById('st-excused-month').innerText = stats.excused_month;
+
+            document.getElementById('stats-modal').classList.remove('hidden');
+        }
+
+        function closeStatsModal() {
+            document.getElementById('stats-modal').classList.add('hidden');
+        }
+
+        function render() {
+            const container = document.getElementById('students-container');
+            container.innerHTML = '';
+            const filtered = allStudents.filter(s => s.ring === currentRing);
+
+            filtered.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                card.innerHTML = `
+                    <div class="student-info" onclick='showStudentStats(${JSON.stringify(student)})' title="اضغط لعرض إحصائيات الطالب">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <div>
+                            <span>${student.name}</span>
+                            ${student.status === 'excused' && student.reason ? `<span class="reason-tag"><i class="fa-solid fa-info-circle"></i> ${student.reason}</span>` : ''}
+                        </div>
                     </div>
-                    <button class="delete-btn" onclick="deleteStudent(${student.id})"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            `;
-            container.appendChild(card);
-        });
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div class="attendance-btns">
+                            <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" onclick="setStatus(${student.id}, 'present')">حاضر</button>
+                            <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" onclick="setStatus(${student.id}, 'absent')">غائب</button>
+                            <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
+                        </div>
+                        <button onclick="deleteStudent(${student.id})" style="background:none; border:none; color:var(--absent); cursor:pointer; font-size:1.1rem; padding:0.2rem;"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
 
-        updateStats(filtered);
-    }
+            document.getElementById('total-count').innerText = filtered.length;
+            document.getElementById('present-count').innerText = filtered.filter(s => s.status === 'present').length;
+            document.getElementById('absent-count').innerText = filtered.filter(s => s.status === 'absent').length;
+            document.getElementById('excused-count').innerText = filtered.filter(s => s.status === 'excused').length;
+        }
 
-    // تشغيل جلب البيانات فور تحميل الصفحة
-    window.onload = loadStudents;
-</script>
+        window.onload = loadStudents;
+    </script>
 </body>
 </html>
