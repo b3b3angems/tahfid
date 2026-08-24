@@ -38,7 +38,6 @@
         header { text-align: center; margin-bottom: 1.5rem; }
         header h1 { font-size: 2.2rem; color: var(--primary); font-weight: 800; }
 
-        /* شريط التحديد (سنة / شهر / أسابيع) */
         .controls-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 16px; margin-bottom: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; }
         .control-group { text-align: right; }
         .control-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
@@ -85,7 +84,7 @@
         <div class="portal-card">
             <span class="mosque-icon">🕌</span>
             <h2>جامع الشقيحي</h2>
-            <p>نظام تحضير الحلقات الأسبوعي والشهري</p>
+            <p>نظام تحضير الحلقات الأسبوعي والشهري (الهجري)</p>
 
             <div id="portal-main" class="portal-btns">
                 <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> المحضر</button>
@@ -141,33 +140,33 @@
     <div class="container hidden" id="admin-view">
         <header>
             <h1>🕌 جامع الشقيحي</h1>
-            <p>سجل الحضور والغياب</p>
+            <p>سجل الحضور والغياب (التقويم الهجري)</p>
         </header>
 
-        <!-- Controls Selection (Year, Month, Week) -->
+        <!-- Controls Selection Hijri (Year, Month, Week) -->
         <div class="controls-card">
             <div class="control-group">
-                <label>السنة الميلادية</label>
+                <label>السنة الهجرية</label>
                 <select id="year-select" onchange="onControlChange()">
-                    <option value="2026" selected>2026</option>
-                    <option value="2027">2027</option>
+                    <option value="1447" selected>1447 هـ</option>
+                    <option value="1448">1448 هـ</option>
                 </select>
             </div>
             <div class="control-group">
-                <label>الشهر الميلادي</label>
+                <label>الشهر الهجري</label>
                 <select id="month-select" onchange="onControlChange()">
-                    <option value="1">يناير (01)</option>
-                    <option value="2">فبراير (02)</option>
-                    <option value="3">مارس (03)</option>
-                    <option value="4">أبريل (04)</option>
-                    <option value="5">مايو (05)</option>
-                    <option value="6">يونيو (06)</option>
-                    <option value="7">يوليو (07)</option>
-                    <option value="8">أغسطس (08)</option>
-                    <option value="9">سبتمبر (09)</option>
-                    <option value="10" selected>أكتوبر (10)</option>
-                    <option value="11">نوفمبر (11)</option>
-                    <option value="12">ديسمبر (12)</option>
+                    <option value="1" selected>محرم</option>
+                    <option value="2">صفر</option>
+                    <option value="3">ربيع الأول</option>
+                    <option value="4">ربيع الآخر</option>
+                    <option value="5">جمادى الأولى</option>
+                    <option value="6">جمادى الآخرة</option>
+                    <option value="7">رجب</option>
+                    <option value="8">شعبان</option>
+                    <option value="9">رمضان</option>
+                    <option value="10">شوال</option>
+                    <option value="11">ذو القعدة</option>
+                    <option value="12">ذو الحجة</option>
                 </select>
             </div>
             <div class="control-group">
@@ -230,7 +229,7 @@
                 document.getElementById('portal-modal').classList.add('hidden');
                 document.getElementById('admin-view').classList.remove('hidden');
             }
-            loadStudents();
+            onControlChange();
         };
 
         function getSelectedPeriod() {
@@ -244,7 +243,7 @@
         function onControlChange() {
             const period = getSelectedPeriod();
             const monthText = document.getElementById('month-select').options[document.getElementById('month-select').selectedIndex].text;
-            document.getElementById('stats-title-label').innerText = `إحصائيات الأسبوع (${period.week}) - شهر ${monthText} لعام ${period.year}`;
+            document.getElementById('stats-title-label').innerText = `إحصائيات الأسبوع (${period.week}) - شهر ${monthText} لعام ${period.year} هـ`;
             loadStudents();
         }
 
@@ -328,8 +327,8 @@
                         ${student.reason ? `<p style="font-size:0.85rem; color:var(--excused);">السبب: ${student.reason}</p>` : ''}
                         <hr style="border-color:var(--border); margin:0.8rem 0;">
                         <div style="display:flex; justify-content:space-around; text-align:center; font-size:0.85rem;">
-                            <span>مجموع غياب الشهر: <b style="color:var(--absent);">${stats.absent_count}</b></span>
-                            <span>مجموع استئذان الشهر: <b style="color:var(--excused);">${stats.excused_count}</b></span>
+                            <span>غياب الشهر: <b style="color:var(--absent);">${stats.absent_count}</b></span>
+                            <span>استئذان الشهر: <b style="color:var(--excused);">${stats.excused_count}</b></span>
                         </div>
                     </div>
                 `;

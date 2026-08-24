@@ -12,7 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// تهيئة قاعدة البيانات والتأكد من الأعمدة
+// تهيئة قاعدة البيانات والتأكد من الأعمدة الهجرية
 async function initDB() {
   try {
     await pool.query(`
@@ -28,31 +28,31 @@ async function initDB() {
         status VARCHAR(20) DEFAULT 'present',
         reason TEXT DEFAULT '',
         day_name VARCHAR(20) DEFAULT 'الأحد',
-        year_num INT DEFAULT 2026,
-        month_num INT DEFAULT 10,
+        year_num INT DEFAULT 1447,
+        month_num INT DEFAULT 1,
         week_num INT DEFAULT 1
       );
     `);
 
-    // إضافة الأعمدة إن لم تكن موجودة في جداول سابقة
-    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS year_num INT DEFAULT 2026;`);
-    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS month_num INT DEFAULT 10;`);
+    // إضافة وتأكيد الأعمدة الهجرية
+    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS year_num INT DEFAULT 1447;`);
+    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS month_num INT DEFAULT 1;`);
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS week_num INT DEFAULT 1;`);
     await pool.query(`ALTER TABLE attendance ALTER COLUMN date DROP NOT NULL;`).catch(() => {});
 
-    // قيد فريد يضمن عدم تكرار سجل الطالب في نفس (اليوم، الأسبوع، الشهر، السنة)
+    // قيد فريد يمنع تكرار التحضير لنفس الطالب باليوم والأسبوع والشهر والسنة
     await pool.query(`
       DO $$ 
       BEGIN 
         IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'unique_student_period'
+          SELECT 1 FROM pg_constraint WHERE conname = 'unique_student_hijri_period'
         ) THEN 
-          ALTER TABLE attendance ADD CONSTRAINT unique_student_period UNIQUE (student_id, day_name, week_num, month_num, year_num);
+          ALTER TABLE attendance ADD CONSTRAINT unique_student_hijri_period UNIQUE (student_id, day_name, week_num, month_num, year_num);
         END IF;
       END $$;
     `);
 
-    console.log('Database initialized with Year/Month/Week support');
+    console.log('Database initialized with Hijri calendar support');
   } catch (err) {
     console.error('Error initializing DB:', err);
   }
@@ -68,11 +68,11 @@ app.get('/', (req, res) => {
   else res.status(404).send('Index file not found');
 });
 
-// جلب الطلاب بناءً على السنة والشهر والأسبوع واليوم
+// جلب الطلاب حسب التاريخ الهجري
 app.get('/api/students', async (req, res) => {
   const day = req.query.day || 'الأحد';
-  const year = parseInt(req.query.year) || 2026;
-  const month = parseInt(req.query.month) || 10;
+  const year = parseInt(req.query.year) || 1447;
+  const month = parseInt(req.query.month) || 1;
   const week = parseInt(req.query.week) || 1;
 
   try {
@@ -101,8 +101,8 @@ app.get('/api/students', async (req, res) => {
 app.post('/api/students', async (req, res) => {
   const { name, ring, day, year, month, week } = req.body;
   const currentDay = day || 'الأحد';
-  const y = parseInt(year) || 2026;
-  const m = parseInt(month) || 10;
+  const y = parseInt(year) || 1447;
+  const m = parseInt(month) || 1;
   const w = parseInt(week) || 1;
 
   try {
@@ -124,8 +124,8 @@ app.post('/api/students', async (req, res) => {
 // تحديث حالة الحضور
 app.put('/api/attendance', async (req, res) => {
   const { student_id, day, year, month, week, status, reason } = req.body;
-  const y = parseInt(year) || 2026;
-  const m = parseInt(month) || 10;
+  const y = parseInt(year) || 1447;
+  const m = parseInt(month) || 1;
   const w = parseInt(week) || 1;
 
   try {
@@ -146,8 +146,8 @@ app.put('/api/attendance', async (req, res) => {
 // تحضير الجميع "حاضر"
 app.post('/api/attendance/all-present', async (req, res) => {
   const { ring, day, year, month, week } = req.body;
-  const y = parseInt(year) || 2026;
-  const m = parseInt(month) || 10;
+  const y = parseInt(year) || 1447;
+  const m = parseInt(month) || 1;
   const w = parseInt(week) || 1;
 
   try {
@@ -177,11 +177,11 @@ app.delete('/api/students/:id', async (req, res) => {
   }
 });
 
-// جلب إحصائيات الشهر للطالب
+// جلب إحصائيات الشهر الهجري للطالب
 app.get('/api/students/:id/stats', async (req, res) => {
   const studentId = req.params.id;
-  const year = parseInt(req.query.year) || 2026;
-  const month = parseInt(req.query.month) || 10;
+  const year = parseInt(req.query.year) || 1447;
+  const month = parseInt(req.query.month) || 1;
 
   try {
     const statsQuery = `
