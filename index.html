@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة حلقات تحفيظ القرآن الكريم</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --present: #10b981;
+            --absent: #ef4444;
+            --excused: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Ring Selection Tabs */
+        .rings-tabs {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1.2rem;
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .count {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        /* Add Student Form */
+        .add-student-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .add-student-box input {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .add-student-box button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .add-student-box button:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Students List */
+        .students-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .student-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .attendance-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .status-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; }
+        .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; }
+        .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: var(--absent);
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-right: 0.5rem;
+            opacity: 0.7;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover { opacity: 1; transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1><i class="fa-solid =>-quran"></i> نظام تحفيظ القرآن الكريم</h1>
+            <p>إدارة الحضور والغياب اليومي للحلقات</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="rings-tabs">
+            <button class="tab-btn active" onclick="switchRing('omar')">حلقة عمر بن الخطاب</button>
+            <button class="tab-btn" onclick="switchRing('bilal')">حلقة بلال بن رباح</button>
+            <button class="tab-btn" onclick="switchRing('saad')">حلقة سعد بن أبي وقاص</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>إجمالي الطلاب</h3>
+                <div class="count" id="total-count">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>الحاضرون</h3>
+                <div class="count" style="color: var(--present);" id="present-count">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>الغائبون</h3>
+                <div class="count" style="color: var(--absent);" id="absent-count">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>المستأذنون</h3>
+                <div class="count" style="color: var(--excused);" id="excused-count">0</div>
+            </div>
+        </div>
+
+        <!-- Add Form -->
+        <div class="add-student-box">
+            <input type="text" id="student-name-input" placeholder="أدخل اسم الطالب الجديد...">
+            <button onclick="addStudent()"><i class="fa-solid fa-plus"></i> إضافة طالب</button>
+        </div>
+
+        <!-- List -->
+        <div class="students-list" id="students-container"></div>
+    </div>
+
+    <script>
+        let currentRing = 'omar';
+        let data = {
+            omar: [
+                { id: 1, name: "عبدالرحمن محمد", status: "present" },
+                { id: 2, name: "أحمد علي", status: null }
+            ],
+            bilal: [
+                { id: 3, name: "خالد يوسف", status: null }
+            ],
+            saad: [
+                { id: 4, name: "عمر فاروق", status: null }
+            ]
+        };
+
+        function switchRing(ringKey) {
+            currentRing = ringKey;
+            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
+            });
+            render();
+        }
+
+        function addStudent() {
+            const input = document.getElementById('student-name-input');
+            const name = input.value.trim();
+            if (!name) return;
+
+            data[currentRing].push({
+                id: Date.now(),
+                name: name,
+                status: null
+            });
+
+            input.value = '';
+            render();
+        }
+
+        function deleteStudent(id) {
+            data[currentRing] = data[currentRing].filter(s => s.id !== id);
+            render();
+        }
+
+        function setStatus(id, status) {
+            const student = data[currentRing].find(s => s.id === id);
+            if (student) {
+                student.status = student.status === status ? null : status;
+            }
+            render();
+        }
+
+        function updateStats() {
+            const students = data[currentRing];
+            document.getElementById('total-count').innerText = students.length;
+            document.getElementById('present-count').innerText = students.filter(s => s.status === 'present').length;
+            document.getElementById('absent-count').innerText = students.filter(s => s.status === 'absent').length;
+            document.getElementById('excused-count').innerText = students.filter(s => s.status === 'excused').length;
+        }
+
+        function render() {
+            const container = document.getElementById('students-container');
+            container.innerHTML = '';
+
+            data[currentRing].forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                card.innerHTML = `
+                    <div class="student-info">
+                        <i class="fa-solid fa-user-graduate"></i>
+                        <span>${student.name}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div class="attendance-btns">
+                            <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" 
+                                onclick="setStatus(${student.id}, 'present')">حاضر</button>
+                            <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" 
+                                onclick="setStatus(${student.id}, 'absent')">غائب</button>
+                            <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" 
+                                onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
+                        </div>
+                        <button class="delete-btn" onclick="deleteStudent(${student.id})" title="حذف الطالب">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            updateStats();
+        }
+
+        // Run setup
+        render();
+    </script>
+</body>
+</html>
