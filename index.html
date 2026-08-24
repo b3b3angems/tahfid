@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>جامع الشقيحي - نظام الحلقات</title>
+
+    <!-- أيقونة التاب (Favicon) على شكل إيموجي مسجد -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕌</text></svg>">
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #10b981;
+            --primary-hover: #059669;
             --bg: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.85);
             --border: rgba(255, 255, 255, 0.1);
@@ -18,63 +23,246 @@
             --absent: #ef4444;
             --excused: #f59e0b;
             --unmarked: #64748b;
+            --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
-        body { background: radial-gradient(circle at top right, #1e293b, #0f172a); color: var(--text); min-height: 100vh; padding: 1.5rem 1rem; }
-        .container { max-width: 900px; margin: 0 auto; }
+        
+        body { 
+            background: radial-gradient(circle at top right, #1e293b, #0f172a); 
+            color: var(--text); 
+            min-height: 100vh; 
+            padding: 1.5rem 1rem;
+            overflow-x: hidden;
+        }
 
-        .portal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); display: flex; justify-content: center; align-items: center; z-index: 999; padding: 1rem; }
-        .portal-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px; padding: 2.5rem 2rem; text-align: center; max-width: 450px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-        .mosque-icon { font-size: 3.5rem; margin-bottom: 0.5rem; display: block; }
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes mosquePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            animation: slideInUp 0.5s var(--transition-smooth);
+        }
+
+        .portal-overlay { 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+            background: rgba(15, 23, 42, 0.92); 
+            backdrop-filter: blur(16px); 
+            display: flex; justify-content: center; align-items: center; 
+            z-index: 999; padding: 1rem; 
+            transition: opacity 0.3s ease;
+        }
+
+        .portal-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 24px; 
+            padding: 2.5rem 2rem; 
+            text-align: center; 
+            max-width: 480px; width: 100%; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+            animation: fadeInScale 0.4s var(--transition-smooth);
+        }
+
+        .mosque-icon { 
+            font-size: 3.8rem; 
+            margin-bottom: 0.5rem; 
+            display: inline-block; 
+            animation: mosquePulse 3s infinite ease-in-out;
+        }
+
         .portal-card h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem; font-weight: 800; }
         .portal-card p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
-        .portal-btns { display: flex; flex-direction: column; gap: 0.8rem; }
-        .portal-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; padding: 0.9rem; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
-        .portal-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
-        .custom-input, select { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 10px; color: #fff; font-size: 1rem; outline: none; margin-top: 0.5rem; text-align: center; }
+        
+        .portal-btns { display: flex; flex-direction: column; gap: 0.9rem; }
+        
+        .portal-btn { 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border); 
+            color: #fff; 
+            padding: 1rem; 
+            border-radius: 14px; 
+            font-size: 1.05rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.25s var(--transition-smooth); 
+            display: flex; align-items: center; justify-content: center; gap: 0.7rem; 
+        }
+
+        .portal-btn:hover { 
+            background: var(--primary); 
+            border-color: var(--primary); 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.25);
+        }
+
+        .portal-btn:active { transform: translateY(-1px); }
+
+        .ring-select-btn { 
+            background: rgba(16, 185, 129, 0.08); 
+            border: 1px solid rgba(16, 185, 129, 0.3); 
+            padding: 1.2rem; 
+            font-size: 1.15rem; 
+        }
+
+        .ring-select-btn:hover { background: var(--primary); color: white; }
+
+        .custom-input, select { 
+            width: 100%; 
+            background: rgba(15, 23, 42, 0.8); 
+            border: 1px solid var(--border); 
+            padding: 0.8rem 1rem; 
+            border-radius: 10px; 
+            color: #fff; 
+            font-size: 1rem; 
+            outline: none; 
+            margin-top: 0.5rem; 
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .custom-input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+        }
 
         .hidden { display: none !important; }
 
         header { text-align: center; margin-bottom: 1.5rem; }
-        header h1 { font-size: 2.2rem; color: var(--primary); font-weight: 800; }
+        header h1 { font-size: 2rem; color: var(--primary); font-weight: 800; }
+        
+        .active-ring-badge { 
+            display: inline-block; 
+            background: rgba(16, 185, 129, 0.15); 
+            color: var(--primary); 
+            border: 1px solid var(--primary); 
+            padding: 0.4rem 1.4rem; 
+            border-radius: 20px; 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            margin-top: 0.4rem; 
+            transition: transform 0.3s ease;
+        }
 
-        .controls-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 16px; margin-bottom: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; }
+        .controls-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 1rem; 
+            border-radius: 16px; 
+            margin-bottom: 1.2rem; 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 0.8rem; 
+        }
+
         .control-group { text-align: right; }
         .control-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
 
-        .days-bar { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; background: var(--card-bg); padding: 0.6rem; border-radius: 16px; border: 1px solid var(--border); }
-        .day-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-        .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .days-bar { 
+            display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; 
+            background: var(--card-bg); padding: 0.6rem; border-radius: 16px; border: 1px solid var(--border); 
+        }
 
-        .rings-tabs { display: flex; gap: 0.6rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
-        .tab-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
-        .tab-btn.active { background: var(--primary); border-color: var(--primary); }
+        .day-btn { 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            padding: 0.5rem 1rem; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 700; 
+            transition: all 0.25s var(--transition-smooth); 
+        }
+
+        .day-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .day-btn.active { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
 
         .stats-title { font-size: 0.95rem; color: var(--primary); font-weight: 700; margin-bottom: 0.6rem; text-align: center; }
+        
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.8rem; margin-bottom: 1.2rem; }
-        .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; text-align: center; }
+        .stat-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 0.8rem; 
+            border-radius: 12px; 
+            text-align: center; 
+            transition: transform 0.25s ease;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
         .stat-card h3 { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
         .stat-card .count { font-size: 1.5rem; font-weight: 800; }
 
         .add-student-box { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; display: flex; gap: 0.8rem; }
         .add-student-box input { flex: 1; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border); padding: 0.7rem 1rem; border-radius: 8px; color: #fff; outline: none; font-size: 0.95rem; }
-        .add-student-box button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; }
+        .add-student-box button { background: var(--primary); color: white; border: none; padding: 0.7rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: background 0.2s ease, transform 0.2s ease; }
+        .add-student-box button:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
         .students-list { display: flex; flex-direction: column; gap: 0.8rem; }
-        .student-card { background: var(--card-bg); border: 1px solid var(--border); padding: 0.9rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; }
-        .student-info { display: flex; align-items: center; gap: 0.7rem; font-weight: 700; cursor: pointer; }
+        
+        .student-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 0.9rem 1.2rem; 
+            border-radius: 12px; 
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; 
+            transition: all 0.25s var(--transition-smooth);
+            animation: slideInUp 0.3s var(--transition-smooth);
+        }
+
+        .student-card:hover { 
+            border-color: rgba(16, 185, 129, 0.4); 
+            transform: translateX(-3px); 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+        }
+
+        .student-info { display: flex; align-items: center; gap: 0.7rem; font-weight: 700; cursor: pointer; transition: color 0.2s ease; }
         .student-info:hover { color: var(--primary); }
         .reason-tag { font-size: 0.75rem; color: var(--excused); display: block; margin-top: 0.2rem; font-weight: 500; }
 
         .attendance-btns { display: flex; gap: 0.3rem; flex-wrap: wrap; }
-        .status-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.7rem; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
-        .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; }
-        .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; }
-        .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; }
+        .status-btn { 
+            background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--border); 
+            color: var(--text); 
+            padding: 0.4rem 0.7rem; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            transition: all 0.2s ease; 
+        }
+        
+        .status-btn:hover { transform: translateY(-2px); }
+        .status-btn.present.active { background: var(--present); border-color: var(--present); color: white; box-shadow: 0 0 10px rgba(16,185,129,0.4); }
+        .status-btn.absent.active { background: var(--absent); border-color: var(--absent); color: white; box-shadow: 0 0 10px rgba(239,68,68,0.4); }
+        .status-btn.excused.active { background: var(--excused); border-color: var(--excused); color: white; box-shadow: 0 0 10px rgba(245,158,11,0.4); }
         .status-btn.unmarked.active { background: var(--unmarked); border-color: var(--unmarked); color: white; }
 
-        .modal-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; width: 90%; max-width: 420px; text-align: center; }
+        .modal-box { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 20px; 
+            padding: 1.8rem; 
+            width: 90%; 
+            max-width: 420px; 
+            text-align: center; 
+            animation: fadeInScale 0.3s var(--transition-smooth);
+        }
+
         .stats-badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.2rem 0; }
         .badge-box { background: rgba(15,23,42,0.6); padding: 0.9rem; border-radius: 12px; border: 1px solid var(--border); }
         .action-btns-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
@@ -82,18 +270,20 @@
 </head>
 <body>
 
-    <!-- Portal Selection Modal -->
+    <!-- Portal Selection & Ring Choice Overlay -->
     <div class="portal-overlay" id="portal-modal">
         <div class="portal-card">
             <span class="mosque-icon">🕌</span>
             <h2>جامع الشقيحي</h2>
-            <p>نظام تحضير الحلقات الأسبوعي والشهري (الهجري)</p>
+            <p>نظام تحضير الحلقات (التقويم الهجري)</p>
 
+            <!-- الشاشة الأولى: اختيار نوع الدخول -->
             <div id="portal-main" class="portal-btns">
-                <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> المحضر</button>
+                <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> دخول المحضر</button>
                 <button class="portal-btn" onclick="showStudentSearchForm()"><i class="fa-solid fa-user-graduate"></i> الطالب / ولي الأمر</button>
             </div>
 
+            <!-- الشاشة الثانية: إدخال رمز المرور -->
             <div id="passcode-form" class="hidden">
                 <p>أدخل رمز دخول المحضر:</p>
                 <input type="tel" id="passcode-input" class="custom-input" placeholder="••••••" maxlength="6" inputmode="numeric">
@@ -103,6 +293,23 @@
                 </div>
             </div>
 
+            <!-- الشاشة الثالثة: اختيار الحلقة بأزرار كبيرة -->
+            <div id="ring-selection-form" class="hidden">
+                <h3 style="margin-bottom: 1rem; color: #fff;">اختر الحلقة للتحضير</h3>
+                <div class="portal-btns">
+                    <button class="portal-btn ring-select-btn" onclick="selectRing('omar', 'حلقة عمر بن الخطاب')">
+                        <i class="fa-solid fa-book-open"></i> حلقة عمر بن الخطاب
+                    </button>
+                    <button class="portal-btn ring-select-btn" onclick="selectRing('bilal', 'حلقة بلال بن رباح')">
+                        <i class="fa-solid fa-book-open"></i> حلقة بلال بن رباح
+                    </button>
+                    <button class="portal-btn ring-select-btn" onclick="selectRing('saad', 'حلقة سعد بن أبي وقاص')">
+                        <i class="fa-solid fa-book-open"></i> حلقة سعد بن أبي وقاص
+                    </button>
+                </div>
+            </div>
+
+            <!-- بحث الطلاب -->
             <div id="student-search-form" class="hidden">
                 <p>ابحث باسم الطالب لعرض تفاصيل الحضور:</p>
                 <input type="text" id="search-name-input" class="custom-input" placeholder="اسم الطالب...">
@@ -115,7 +322,7 @@
         </div>
     </div>
 
-    <!-- Reason Modal -->
+    <!-- Modal السبب -->
     <div class="portal-overlay hidden" id="reason-modal">
         <div class="modal-box">
             <h3>سبب الاستئذان (اختياري)</h3>
@@ -127,7 +334,7 @@
         </div>
     </div>
 
-    <!-- Student Stats Modal -->
+    <!-- Modal إحصائيات الطالب -->
     <div class="portal-overlay hidden" id="stats-modal">
         <div class="modal-box">
             <h3 id="modal-student-name" style="color:var(--primary);">إحصائيات الطالب</h3>
@@ -143,16 +350,16 @@
     <div class="container hidden" id="admin-view">
         <header>
             <h1>🕌 جامع الشقيحي</h1>
-            <p>سجل الحضور والغياب (التقويم الهجري)</p>
+            <div class="active-ring-badge" id="active-ring-name">حلقة عمر بن الخطاب</div>
         </header>
 
-        <!-- Controls Selection Hijri (Year, Month, Week) -->
+        <!-- Controls Selection Hijri -->
         <div class="controls-card">
             <div class="control-group">
                 <label>السنة الهجرية</label>
                 <select id="year-select" onchange="onControlChange()">
-                    <option value="1447">1447 هـ</option>
                     <option value="1448">1448 هـ</option>
+                    <option value="1449">1449 هـ</option>
                 </select>
             </div>
             <div class="control-group">
@@ -160,7 +367,7 @@
                 <select id="month-select" onchange="onControlChange()">
                     <option value="1">محرم</option>
                     <option value="2">صفر</option>
-                    <option value="3">ربيع الأول</option>
+                    <option value="3" selected>ربيع الأول</option>
                     <option value="4">ربيع الآخر</option>
                     <option value="5">جمادى الأولى</option>
                     <option value="6">جمادى الآخرة</option>
@@ -176,7 +383,7 @@
                 <label>الأسبوع</label>
                 <select id="week-select" onchange="onControlChange()">
                     <option value="1">الأسبوع الأول (1)</option>
-                    <option value="2">الأسبوع الثاني (2)</option>
+                    <option value="2" selected>الأسبوع الثاني (2)</option>
                     <option value="3">الأسبوع الثالث (3)</option>
                     <option value="4">الأسبوع الرابع (4)</option>
                 </select>
@@ -186,20 +393,14 @@
         <!-- Days Selector Bar -->
         <div class="days-bar">
             <button class="day-btn" onclick="switchDay('الأحد')">الأحد</button>
-            <button class="day-btn" onclick="switchDay('الاثنين')">الاثنين</button>
+            <button class="day-btn active" onclick="switchDay('الاثنين')">الاثنين</button>
             <button class="day-btn" onclick="switchDay('الثلاثاء')">الثلاثاء</button>
             <button class="day-btn" onclick="switchDay('الأربعاء')">الأربعاء</button>
             <button class="day-btn" onclick="switchDay('الخميس')">الخميس</button>
         </div>
 
-        <div class="rings-tabs">
-            <button class="tab-btn active" onclick="switchRing('omar')">حلقة عمر بن الخطاب</button>
-            <button class="tab-btn" onclick="switchRing('bilal')">حلقة بلال بن رباح</button>
-            <button class="tab-btn" onclick="switchRing('saad')">حلقة سعد بن أبي وقاص</button>
-        </div>
-
         <!-- Weekly & Monthly Stats Display -->
-        <div class="stats-title" id="stats-title-label">إحصائيات الأسبوع المحدد</div>
+        <div class="stats-title" id="stats-title-label">إحصائيات الأسبوع (2) - شهر ربيع الأول لعام 1448 هـ</div>
         <div class="stats-grid">
             <div class="stat-card"><h3>إجمالي الطلاب</h3><div class="count" id="total-count">0</div></div>
             <div class="stat-card"><h3>الحاضرون</h3><div class="count" style="color: var(--present);" id="present-count">0</div></div>
@@ -222,9 +423,14 @@
                     <i class="fa-solid fa-rotate-left"></i> إعادة ضبط "لم يتم التحضير"
                 </button>
             </div>
-            <button class="portal-btn" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onclick="logout()">
-                <i class="fa-solid fa-right-from-bracket"></i> خروج
-            </button>
+            <div style="display:flex; gap:0.5rem;">
+                <button class="portal-btn" style="padding:0.4rem 0.8rem; font-size:0.85rem; background:rgba(255,255,255,0.1);" onclick="backToRings()">
+                    <i class="fa-solid fa-arrows-rotate"></i> تغيير الحلقة
+                </button>
+                <button class="portal-btn" style="padding:0.4rem 0.8rem; font-size:0.85rem;" onclick="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> خروج
+                </button>
+            </div>
         </div>
 
         <div class="students-list" id="students-container"></div>
@@ -236,76 +442,32 @@
         let allStudents = [];
         let activeStudentForReason = null;
 
-        // دالة حساب وتعيين التاريخ الحالي تلقائياً
-        function setAutoCurrentDate() {
-            const now = new Date();
+        function setInitialBaseDate() {
+            // تثبيت البداية الافتراضية: 1448 - ربيع الأول (3) - الأسبوع الثاني (2) - الاثنين
+            document.getElementById('year-select').value = "1448";
+            document.getElementById('month-select').value = "3";
+            document.getElementById('week-select').value = "2";
+            currentDay = 'الاثنين';
 
-            // تحويل اسم اليوم باللغة العربية
-            const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-            const dayName = dayNames[now.getDay()];
-            
-            // إذا كان يوم جمعة أو سبت، يتم الاعتماد افتراضياً على يوم الأحد
-            if (dayName === 'الجمعة' || dayName === 'السبت') {
-                currentDay = 'الأحد';
-            } else {
-                currentDay = dayName;
-            }
-
-            // تحويل التاريخ الحالي إلى التقويم الهجري
-            try {
-                const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-uma-nu-latn', {
-                    year: 'numeric',
-                    month: 'numeric',
-                    day: 'numeric'
-                });
-                const parts = hijriFormatter.formatToParts(now);
-                let hYear = 1448;
-                let hMonth = 3;
-                let hDay = 11;
-
-                parts.forEach(p => {
-                    if (p.type === 'year') hYear = parseInt(p.value);
-                    if (p.type === 'month') hMonth = parseInt(p.value);
-                    if (p.type === 'day') hDay = parseInt(p.value);
-                });
-
-                // حساب الأسبوع بناءً على يوم الشهر الهجري
-                const hWeek = Math.min(Math.ceil(hDay / 7), 4);
-
-                document.getElementById('year-select').value = hYear.toString();
-                document.getElementById('month-select').value = hMonth.toString();
-                document.getElementById('week-select').value = hWeek.toString();
-            } catch (e) {
-                // قيم افتراضية احتياطية
-                document.getElementById('year-select').value = "1448";
-                document.getElementById('month-select').value = "3";
-                document.getElementById('week-select').value = "2";
-            }
-
-            // تحديث زر اليوم النشط
             document.querySelectorAll('.day-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.innerText.trim() === currentDay);
             });
         }
 
         window.onload = () => {
-            setAutoCurrentDate();
+            setInitialBaseDate();
 
             const role = localStorage.getItem('portal_role');
-            if (role === 'admin') {
+            const savedRing = localStorage.getItem('portal_ring');
+            const savedRingName = localStorage.getItem('portal_ring_name');
+
+            if (role === 'admin' && savedRing) {
+                currentRing = savedRing;
+                document.getElementById('active-ring-name').innerText = savedRingName || 'الحلقة المختارة';
                 document.getElementById('portal-modal').classList.add('hidden');
                 document.getElementById('admin-view').classList.remove('hidden');
+                loadStudents();
             }
-            onControlChange();
-
-            // إعادة الفحص عند منتصف الليل (12 الليل) لتحديث اليوم تلقائياً
-            const now = new Date();
-            const night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
-            const msToMidnight = night.getTime() - now.getTime();
-            setTimeout(() => {
-                setAutoCurrentDate();
-                onControlChange();
-            }, msToMidnight);
         };
 
         function getSelectedPeriod() {
@@ -340,14 +502,6 @@
             loadStudents();
         }
 
-        function switchRing(ringKey) {
-            currentRing = ringKey;
-            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
-                btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
-            });
-            render();
-        }
-
         function showPasscodeForm() {
             document.getElementById('portal-main').classList.add('hidden');
             document.getElementById('passcode-form').classList.remove('hidden');
@@ -360,6 +514,7 @@
 
         function resetPortal() {
             document.getElementById('passcode-form').classList.add('hidden');
+            document.getElementById('ring-selection-form').classList.add('hidden');
             document.getElementById('student-search-form').classList.add('hidden');
             document.getElementById('portal-main').classList.remove('hidden');
             document.getElementById('student-result').innerHTML = '';
@@ -368,14 +523,31 @@
         function verifyPasscode() {
             if (document.getElementById('passcode-input').value === '282834') {
                 localStorage.setItem('portal_role', 'admin');
-                document.getElementById('portal-modal').classList.add('hidden');
-                document.getElementById('admin-view').classList.remove('hidden');
-                loadStudents();
+                document.getElementById('passcode-form').classList.add('hidden');
+                document.getElementById('ring-selection-form').classList.remove('hidden');
             } else alert('الرمز غير صحيح!');
+        }
+
+        function selectRing(ringKey, ringDisplayName) {
+            currentRing = ringKey;
+            localStorage.setItem('portal_ring', ringKey);
+            localStorage.setItem('portal_ring_name', ringDisplayName);
+            document.getElementById('active-ring-name').innerText = ringDisplayName;
+            document.getElementById('portal-modal').classList.add('hidden');
+            document.getElementById('admin-view').classList.remove('hidden');
+            loadStudents();
+        }
+
+        function backToRings() {
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('portal-modal').classList.remove('hidden');
+            document.getElementById('ring-selection-form').classList.remove('hidden');
         }
 
         function logout() {
             localStorage.removeItem('portal_role');
+            localStorage.removeItem('portal_ring');
+            localStorage.removeItem('portal_ring_name');
             location.reload();
         }
 
@@ -488,7 +660,7 @@
             document.getElementById('modal-student-name').innerText = student.name;
             const { year, month } = getSelectedPeriod();
             const res = await fetch(`/api/students/${student.id}/stats?year=${year}&month=${month}`);
-            const stats = await statsRes.json();
+            const stats = await res.json();
 
             document.getElementById('st-absent').innerText = stats.absent_count;
             document.getElementById('st-excused').innerText = stats.excused_count;
