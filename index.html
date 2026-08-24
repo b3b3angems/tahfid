@@ -151,14 +151,14 @@
             <div class="control-group">
                 <label>السنة الهجرية</label>
                 <select id="year-select" onchange="onControlChange()">
-                    <option value="1447" selected>1447 هـ</option>
+                    <option value="1447">1447 هـ</option>
                     <option value="1448">1448 هـ</option>
                 </select>
             </div>
             <div class="control-group">
                 <label>الشهر الهجري</label>
                 <select id="month-select" onchange="onControlChange()">
-                    <option value="1" selected>محرم</option>
+                    <option value="1">محرم</option>
                     <option value="2">صفر</option>
                     <option value="3">ربيع الأول</option>
                     <option value="4">ربيع الآخر</option>
@@ -175,7 +175,7 @@
             <div class="control-group">
                 <label>الأسبوع</label>
                 <select id="week-select" onchange="onControlChange()">
-                    <option value="1" selected>الأسبوع الأول (1)</option>
+                    <option value="1">الأسبوع الأول (1)</option>
                     <option value="2">الأسبوع الثاني (2)</option>
                     <option value="3">الأسبوع الثالث (3)</option>
                     <option value="4">الأسبوع الرابع (4)</option>
@@ -185,7 +185,7 @@
 
         <!-- Days Selector Bar -->
         <div class="days-bar">
-            <button class="day-btn active" onclick="switchDay('الأحد')">الأحد</button>
+            <button class="day-btn" onclick="switchDay('الأحد')">الأحد</button>
             <button class="day-btn" onclick="switchDay('الاثنين')">الاثنين</button>
             <button class="day-btn" onclick="switchDay('الثلاثاء')">الثلاثاء</button>
             <button class="day-btn" onclick="switchDay('الأربعاء')">الأربعاء</button>
@@ -231,18 +231,81 @@
     </div>
 
     <script>
-        let currentDay = 'الأحد';
+        let currentDay = 'الاثنين';
         let currentRing = 'omar';
         let allStudents = [];
         let activeStudentForReason = null;
 
+        // دالة حساب وتعيين التاريخ الحالي تلقائياً
+        function setAutoCurrentDate() {
+            const now = new Date();
+
+            // تحويل اسم اليوم باللغة العربية
+            const dayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dayName = dayNames[now.getDay()];
+            
+            // إذا كان يوم جمعة أو سبت، يتم الاعتماد افتراضياً على يوم الأحد
+            if (dayName === 'الجمعة' || dayName === 'السبت') {
+                currentDay = 'الأحد';
+            } else {
+                currentDay = dayName;
+            }
+
+            // تحويل التاريخ الحالي إلى التقويم الهجري
+            try {
+                const hijriFormatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-uma-nu-latn', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric'
+                });
+                const parts = hijriFormatter.formatToParts(now);
+                let hYear = 1448;
+                let hMonth = 3;
+                let hDay = 11;
+
+                parts.forEach(p => {
+                    if (p.type === 'year') hYear = parseInt(p.value);
+                    if (p.type === 'month') hMonth = parseInt(p.value);
+                    if (p.type === 'day') hDay = parseInt(p.value);
+                });
+
+                // حساب الأسبوع بناءً على يوم الشهر الهجري
+                const hWeek = Math.min(Math.ceil(hDay / 7), 4);
+
+                document.getElementById('year-select').value = hYear.toString();
+                document.getElementById('month-select').value = hMonth.toString();
+                document.getElementById('week-select').value = hWeek.toString();
+            } catch (e) {
+                // قيم افتراضية احتياطية
+                document.getElementById('year-select').value = "1448";
+                document.getElementById('month-select').value = "3";
+                document.getElementById('week-select').value = "2";
+            }
+
+            // تحديث زر اليوم النشط
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.innerText.trim() === currentDay);
+            });
+        }
+
         window.onload = () => {
+            setAutoCurrentDate();
+
             const role = localStorage.getItem('portal_role');
             if (role === 'admin') {
                 document.getElementById('portal-modal').classList.add('hidden');
                 document.getElementById('admin-view').classList.remove('hidden');
             }
             onControlChange();
+
+            // إعادة الفحص عند منتصف الليل (12 الليل) لتحديث اليوم تلقائياً
+            const now = new Date();
+            const night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 2);
+            const msToMidnight = night.getTime() - now.getTime();
+            setTimeout(() => {
+                setAutoCurrentDate();
+                onControlChange();
+            }, msToMidnight);
         };
 
         function getSelectedPeriod() {
@@ -425,7 +488,7 @@
             document.getElementById('modal-student-name').innerText = student.name;
             const { year, month } = getSelectedPeriod();
             const res = await fetch(`/api/students/${student.id}/stats?year=${year}&month=${month}`);
-            const stats = await res.json();
+            const stats = await statsRes.json();
 
             document.getElementById('st-absent').innerText = stats.absent_count;
             document.getElementById('st-excused').innerText = stats.excused_count;
