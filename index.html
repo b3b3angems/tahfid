@@ -9,7 +9,6 @@
     <style>
         :root {
             --primary: #10b981;
-            --primary-dark: #059669;
             --bg: #0f172a;
             --card-bg: rgba(30, 41, 59, 0.85);
             --border: rgba(255, 255, 255, 0.1);
@@ -32,14 +31,17 @@
         .portal-btns { display: flex; flex-direction: column; gap: 0.8rem; }
         .portal-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; padding: 0.9rem; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
         .portal-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
-        .custom-input { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 10px; color: #fff; font-size: 1rem; outline: none; margin-top: 0.8rem; text-align: center; }
+        .custom-input, select { width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border); padding: 0.8rem 1rem; border-radius: 10px; color: #fff; font-size: 1rem; outline: none; margin-top: 0.5rem; text-align: center; }
 
         .hidden { display: none !important; }
 
         header { text-align: center; margin-bottom: 1.5rem; }
         header h1 { font-size: 2.2rem; color: var(--primary); font-weight: 800; }
-        
-        .week-range { text-align: center; color: var(--primary); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.8rem; background: rgba(16,185,129,0.1); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(16,185,129,0.2); }
+
+        /* شريط التحديد (سنة / شهر / أسابيع) */
+        .controls-card { background: var(--card-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 16px; margin-bottom: 1.2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; }
+        .control-group { text-align: right; }
+        .control-group label { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
 
         .days-bar { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; background: var(--card-bg); padding: 0.6rem; border-radius: 16px; border: 1px solid var(--border); }
         .day-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; }
@@ -49,6 +51,7 @@
         .tab-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 0.7rem 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
         .tab-btn.active { background: var(--primary); border-color: var(--primary); }
 
+        .stats-title { font-size: 0.95rem; color: var(--primary); font-weight: 700; margin-bottom: 0.6rem; text-align: center; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.8rem; margin-bottom: 1.2rem; }
         .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 0.8rem; border-radius: 12px; text-align: center; }
         .stat-card h3 { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.3rem; }
@@ -82,7 +85,7 @@
         <div class="portal-card">
             <span class="mosque-icon">🕌</span>
             <h2>جامع الشقيحي</h2>
-            <p>نظام تحضير الحلقات الأسبوعي</p>
+            <p>نظام تحضير الحلقات الأسبوعي والشهري</p>
 
             <div id="portal-main" class="portal-btns">
                 <button class="portal-btn" onclick="showPasscodeForm()"><i class="fa-solid fa-user-shield"></i> المحضر</button>
@@ -138,11 +141,45 @@
     <div class="container hidden" id="admin-view">
         <header>
             <h1>🕌 جامع الشقيحي</h1>
-            <p>سجل الحضور الأسبوعي</p>
+            <p>سجل الحضور والغياب</p>
         </header>
 
-        <!-- Week Range Display -->
-        <div class="week-range" id="week-range"></div>
+        <!-- Controls Selection (Year, Month, Week) -->
+        <div class="controls-card">
+            <div class="control-group">
+                <label>السنة الميلادية</label>
+                <select id="year-select" onchange="onControlChange()">
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>الشهر الميلادي</label>
+                <select id="month-select" onchange="onControlChange()">
+                    <option value="1">يناير (01)</option>
+                    <option value="2">فبراير (02)</option>
+                    <option value="3">مارس (03)</option>
+                    <option value="4">أبريل (04)</option>
+                    <option value="5">مايو (05)</option>
+                    <option value="6">يونيو (06)</option>
+                    <option value="7">يوليو (07)</option>
+                    <option value="8">أغسطس (08)</option>
+                    <option value="9">سبتمبر (09)</option>
+                    <option value="10" selected>أكتوبر (10)</option>
+                    <option value="11">نوفمبر (11)</option>
+                    <option value="12">ديسمبر (12)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>الأسبوع</label>
+                <select id="week-select" onchange="onControlChange()">
+                    <option value="1" selected>الأسبوع الأول (1)</option>
+                    <option value="2">الأسبوع الثاني (2)</option>
+                    <option value="3">الأسبوع الثالث (3)</option>
+                    <option value="4">الأسبوع الرابع (4)</option>
+                </select>
+            </div>
+        </div>
 
         <!-- Days Selector Bar -->
         <div class="days-bar">
@@ -159,6 +196,8 @@
             <button class="tab-btn" onclick="switchRing('saad')">حلقة سعد بن أبي وقاص</button>
         </div>
 
+        <!-- Weekly & Monthly Stats Display -->
+        <div class="stats-title" id="stats-title-label">إحصائيات الأسبوع المحدد</div>
         <div class="stats-grid">
             <div class="stat-card"><h3>إجمالي الطلاب</h3><div class="count" id="total-count">0</div></div>
             <div class="stat-card"><h3>الحاضرون</h3><div class="count" style="color: var(--present);" id="present-count">0</div></div>
@@ -186,7 +225,6 @@
         let activeStudentForReason = null;
 
         window.onload = () => {
-            displayWeekRange();
             const role = localStorage.getItem('portal_role');
             if (role === 'admin') {
                 document.getElementById('portal-modal').classList.add('hidden');
@@ -195,26 +233,25 @@
             loadStudents();
         };
 
-        function displayWeekRange() {
-            const today = new Date();
-            const day = today.getDay(); // 0 is Sunday
-            
-            const sunday = new Date(today);
-            sunday.setDate(today.getDate() - day);
-            
-            const thursday = new Date(sunday);
-            thursday.setDate(sunday.getDate() + 4);
+        function getSelectedPeriod() {
+            return {
+                year: document.getElementById('year-select').value,
+                month: document.getElementById('month-select').value,
+                week: document.getElementById('week-select').value
+            };
+        }
 
-            const formatOptions = { day: 'numeric', month: 'long' };
-            const sunStr = sunday.toLocaleDateString('ar-SA', formatOptions);
-            const thuStr = thursday.toLocaleDateString('ar-SA', formatOptions);
-            
-            document.getElementById('week-range').innerText = `أسبوع التحضير: من ${sunStr} إلى ${thuStr}`;
+        function onControlChange() {
+            const period = getSelectedPeriod();
+            const monthText = document.getElementById('month-select').options[document.getElementById('month-select').selectedIndex].text;
+            document.getElementById('stats-title-label').innerText = `إحصائيات الأسبوع (${period.week}) - شهر ${monthText} لعام ${period.year}`;
+            loadStudents();
         }
 
         async function loadStudents() {
             try {
-                const res = await fetch(`/api/students?day=${currentDay}`);
+                const { year, month, week } = getSelectedPeriod();
+                const res = await fetch(`/api/students?day=${currentDay}&year=${year}&month=${month}&week=${week}`);
                 allStudents = await res.json();
                 render();
             } catch (err) { console.error('خطأ في جلب البيانات:', err); }
@@ -280,7 +317,8 @@
 
             resultBox.innerHTML = '';
             for (let student of found) {
-                const statsRes = await fetch(`/api/students/${student.id}/stats`);
+                const { year, month } = getSelectedPeriod();
+                const statsRes = await fetch(`/api/students/${student.id}/stats?year=${year}&month=${month}`);
                 const stats = await statsRes.json();
 
                 resultBox.innerHTML += `
@@ -290,8 +328,8 @@
                         ${student.reason ? `<p style="font-size:0.85rem; color:var(--excused);">السبب: ${student.reason}</p>` : ''}
                         <hr style="border-color:var(--border); margin:0.8rem 0;">
                         <div style="display:flex; justify-content:space-around; text-align:center; font-size:0.85rem;">
-                            <span>مجموع الغياب: <b style="color:var(--absent);">${stats.absent_count}</b></span>
-                            <span>مجموع الاستئذان: <b style="color:var(--excused);">${stats.excused_count}</b></span>
+                            <span>مجموع غياب الشهر: <b style="color:var(--absent);">${stats.absent_count}</b></span>
+                            <span>مجموع استئذان الشهر: <b style="color:var(--excused);">${stats.excused_count}</b></span>
                         </div>
                     </div>
                 `;
@@ -302,10 +340,11 @@
             const name = document.getElementById('student-name-input').value.trim();
             if (!name) return;
 
+            const { year, month, week } = getSelectedPeriod();
             await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, ring: currentRing, day: currentDay })
+                body: JSON.stringify({ name, ring: currentRing, day: currentDay, year, month, week })
             });
 
             document.getElementById('student-name-input').value = '';
@@ -319,10 +358,11 @@
                 return;
             }
 
+            const { year, month, week } = getSelectedPeriod();
             await fetch('/api/attendance', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ student_id: studentId, day: currentDay, status, reason })
+                body: JSON.stringify({ student_id: studentId, day: currentDay, year, month, week, status, reason })
             });
             loadStudents();
         }
@@ -340,10 +380,11 @@
         }
 
         async function setAllPresent() {
+            const { year, month, week } = getSelectedPeriod();
             await fetch('/api/attendance/all-present', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ring: currentRing, day: currentDay })
+                body: JSON.stringify({ ring: currentRing, day: currentDay, year, month, week })
             });
             loadStudents();
         }
@@ -356,7 +397,8 @@
 
         async function showStudentStats(student) {
             document.getElementById('modal-student-name').innerText = student.name;
-            const res = await fetch(`/api/students/${student.id}/stats`);
+            const { year, month } = getSelectedPeriod();
+            const res = await fetch(`/api/students/${student.id}/stats?year=${year}&month=${month}`);
             const stats = await res.json();
 
             document.getElementById('st-absent').innerText = stats.absent_count;

@@ -12,7 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// تهيئة قاعدة البيانات وإصلاح الأعمدة القديمة تلقائياً
+// تهيئة قاعدة البيانات والتأكد من الأعمدة
 async function initDB() {
   try {
     await pool.query(`
@@ -26,33 +26,33 @@ async function initDB() {
         id SERIAL PRIMARY KEY,
         student_id INT REFERENCES students(id) ON DELETE CASCADE,
         status VARCHAR(20) DEFAULT 'present',
-        reason TEXT DEFAULT ''
+        reason TEXT DEFAULT '',
+        day_name VARCHAR(20) DEFAULT 'الأحد',
+        year_num INT DEFAULT 2026,
+        month_num INT DEFAULT 10,
+        week_num INT DEFAULT 1
       );
     `);
 
-    // إضافة عمود day_name إن لم يكن موجوداً
-    await pool.query(`
-      ALTER TABLE attendance ADD COLUMN IF NOT EXISTS day_name VARCHAR(20) DEFAULT 'الأحد';
-    `);
+    // إضافة الأعمدة إن لم تكن موجودة في جداول سابقة
+    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS year_num INT DEFAULT 2026;`);
+    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS month_num INT DEFAULT 10;`);
+    await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS week_num INT DEFAULT 1;`);
+    await pool.query(`ALTER TABLE attendance ALTER COLUMN date DROP NOT NULL;`).catch(() => {});
 
-    // إسقاط شرط الـ NOT NULL عن عمود date القديم إن كان موجوداً حتى لا يسبب خطأ عند الإضافة
-    await pool.query(`
-      ALTER TABLE attendance ALTER COLUMN date DROP NOT NULL;
-    `).catch(() => {}); // تجاهل الخطأ في حال لم يكن عمود date موجوداً أصلاً
-
-    // إضافة الشرط الفريد لحظر التكرار على الطالب واليوم
+    // قيد فريد يضمن عدم تكرار سجل الطالب في نفس (اليوم، الأسبوع، الشهر، السنة)
     await pool.query(`
       DO $$ 
       BEGIN 
         IF NOT EXISTS (
-          SELECT 1 FROM pg_constraint WHERE conname = 'unique_student_day'
+          SELECT 1 FROM pg_constraint WHERE conname = 'unique_student_period'
         ) THEN 
-          ALTER TABLE attendance ADD CONSTRAINT unique_student_day UNIQUE (student_id, day_name);
+          ALTER TABLE attendance ADD CONSTRAINT unique_student_period UNIQUE (student_id, day_name, week_num, month_num, year_num);
         END IF;
       END $$;
     `);
 
-    console.log('Database synced successfully & old schema fixed');
+    console.log('Database initialized with Year/Month/Week support');
   } catch (err) {
     console.error('Error initializing DB:', err);
   }
@@ -68,19 +68,28 @@ app.get('/', (req, res) => {
   else res.status(404).send('Index file not found');
 });
 
-// جلب الطلاب بحسب اليوم المحدد
+// جلب الطلاب بناءً على السنة والشهر والأسبوع واليوم
 app.get('/api/students', async (req, res) => {
   const day = req.query.day || 'الأحد';
+  const year = parseInt(req.query.year) || 2026;
+  const month = parseInt(req.query.month) || 10;
+  const week = parseInt(req.query.week) || 1;
+
   try {
     const query = `
       SELECT s.id, s.name, s.ring, 
              COALESCE(a.status, 'present') as status, 
              COALESCE(a.reason, '') as reason
       FROM students s
-      LEFT JOIN attendance a ON s.id = a.student_id AND a.day_name = $1
+      LEFT JOIN attendance a 
+        ON s.id = a.student_id 
+       AND a.day_name = $1 
+       AND a.year_num = $2 
+       AND a.month_num = $3 
+       AND a.week_num = $4
       ORDER BY s.id ASC
     `;
-    const result = await pool.query(query, [day]);
+    const result = await pool.query(query, [day, year, month, week]);
     res.json(result.rows);
   } catch (err) { 
     console.error(err);
@@ -90,15 +99,20 @@ app.get('/api/students', async (req, res) => {
 
 // إضافة طالب جديد
 app.post('/api/students', async (req, res) => {
-  const { name, ring, day } = req.body;
+  const { name, ring, day, year, month, week } = req.body;
   const currentDay = day || 'الأحد';
+  const y = parseInt(year) || 2026;
+  const m = parseInt(month) || 10;
+  const w = parseInt(week) || 1;
+
   try {
     const studentRes = await pool.query('INSERT INTO students (name, ring) VALUES ($1, $2) RETURNING *', [name, ring]);
     const student = studentRes.rows[0];
     
     await pool.query(
-      'INSERT INTO attendance (student_id, day_name, status) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [student.id, currentDay, 'present']
+      `INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status) 
+       VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING`,
+      [student.id, currentDay, y, m, w, 'present']
     );
     res.json(student);
   } catch (err) { 
@@ -107,17 +121,21 @@ app.post('/api/students', async (req, res) => {
   }
 });
 
-// تحديث حالة الحضور والسبب
+// تحديث حالة الحضور
 app.put('/api/attendance', async (req, res) => {
-  const { student_id, day, status, reason } = req.body;
+  const { student_id, day, year, month, week, status, reason } = req.body;
+  const y = parseInt(year) || 2026;
+  const m = parseInt(month) || 10;
+  const w = parseInt(week) || 1;
+
   try {
     const query = `
-      INSERT INTO attendance (student_id, day_name, status, reason)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (student_id, day_name) 
+      INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status, reason)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (student_id, day_name, week_num, month_num, year_num) 
       DO UPDATE SET status = EXCLUDED.status, reason = EXCLUDED.reason;
     `;
-    await pool.query(query, [student_id, day, status, reason || '']);
+    await pool.query(query, [student_id, day, y, m, w, status, reason || '']);
     res.json({ success: true });
   } catch (err) { 
     console.error(err);
@@ -125,17 +143,21 @@ app.put('/api/attendance', async (req, res) => {
   }
 });
 
-// تحضير الجميع "حاضر" لليوم المحدد
+// تحضير الجميع "حاضر"
 app.post('/api/attendance/all-present', async (req, res) => {
-  const { ring, day } = req.body;
+  const { ring, day, year, month, week } = req.body;
+  const y = parseInt(year) || 2026;
+  const m = parseInt(month) || 10;
+  const w = parseInt(week) || 1;
+
   try {
     const students = await pool.query('SELECT id FROM students WHERE ring = $1', [ring]);
     for (let s of students.rows) {
       await pool.query(`
-        INSERT INTO attendance (student_id, day_name, status, reason)
-        VALUES ($1, $2, 'present', '')
-        ON CONFLICT (student_id, day_name) DO UPDATE SET status = 'present';
-      `, [s.id, day]);
+        INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status, reason)
+        VALUES ($1, $2, $3, $4, $5, 'present', '')
+        ON CONFLICT (student_id, day_name, week_num, month_num, year_num) DO UPDATE SET status = 'present';
+      `, [s.id, day, y, m, w]);
     }
     res.json({ success: true });
   } catch (err) { 
@@ -155,18 +177,21 @@ app.delete('/api/students/:id', async (req, res) => {
   }
 });
 
-// جلب إحصائيات الطالب
+// جلب إحصائيات الشهر للطالب
 app.get('/api/students/:id/stats', async (req, res) => {
   const studentId = req.params.id;
+  const year = parseInt(req.query.year) || 2026;
+  const month = parseInt(req.query.month) || 10;
+
   try {
     const statsQuery = `
       SELECT 
         COUNT(CASE WHEN status = 'absent' THEN 1 END) as absent_count,
         COUNT(CASE WHEN status = 'excused' THEN 1 END) as excused_count
       FROM attendance
-      WHERE student_id = $1;
+      WHERE student_id = $1 AND year_num = $2 AND month_num = $3;
     `;
-    const result = await pool.query(statsQuery, [studentId]);
+    const result = await pool.query(statsQuery, [studentId, year, month]);
     res.json(result.rows[0]);
   } catch (err) { 
     console.error(err);
