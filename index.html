@@ -251,99 +251,115 @@
         <div class="students-list" id="students-container"></div>
     </div>
 
-    <script>
-        let currentRing = 'omar';
-        let data = {
-            omar: [
-                { id: 1, name: "عبدالرحمن محمد", status: "present" },
-                { id: 2, name: "أحمد علي", status: null }
-            ],
-            bilal: [
-                { id: 3, name: "خالد يوسف", status: null }
-            ],
-            saad: [
-                { id: 4, name: "عمر فاروق", status: null }
-            ]
-        };
+   <script>
+    let currentRing = 'omar';
+    let allStudents = [];
 
-        function switchRing(ringKey) {
-            currentRing = ringKey;
-            document.querySelectorAll('.tab-btn').forEach((btn, index) => {
-                btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
-            });
+    // جلب البيانات من قاعدة البيانات فور فتح الصفحة
+    async function loadStudents() {
+        try {
+            const res = await fetch('/api/students');
+            allStudents = await res.json();
             render();
+        } catch (err) {
+            console.error("خطأ في جلب البيانات:", err);
         }
+    }
 
-        function addStudent() {
-            const input = document.getElementById('student-name-input');
-            const name = input.value.trim();
-            if (!name) return;
-
-            data[currentRing].push({
-                id: Date.now(),
-                name: name,
-                status: null
-            });
-
-            input.value = '';
-            render();
-        }
-
-        function deleteStudent(id) {
-            data[currentRing] = data[currentRing].filter(s => s.id !== id);
-            render();
-        }
-
-        function setStatus(id, status) {
-            const student = data[currentRing].find(s => s.id === id);
-            if (student) {
-                student.status = student.status === status ? null : status;
-            }
-            render();
-        }
-
-        function updateStats() {
-            const students = data[currentRing];
-            document.getElementById('total-count').innerText = students.length;
-            document.getElementById('present-count').innerText = students.filter(s => s.status === 'present').length;
-            document.getElementById('absent-count').innerText = students.filter(s => s.status === 'absent').length;
-            document.getElementById('excused-count').innerText = students.filter(s => s.status === 'excused').length;
-        }
-
-        function render() {
-            const container = document.getElementById('students-container');
-            container.innerHTML = '';
-
-            data[currentRing].forEach(student => {
-                const card = document.createElement('div');
-                card.className = 'student-card';
-                card.innerHTML = `
-                    <div class="student-info">
-                        <i class="fa-solid fa-user-graduate"></i>
-                        <span>${student.name}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:0.5rem;">
-                        <div class="attendance-btns">
-                            <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" 
-                                onclick="setStatus(${student.id}, 'present')">حاضر</button>
-                            <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" 
-                                onclick="setStatus(${student.id}, 'absent')">غائب</button>
-                            <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" 
-                                onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
-                        </div>
-                        <button class="delete-btn" onclick="deleteStudent(${student.id})" title="حذف الطالب">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            updateStats();
-        }
-
-        // Run setup
+    // التنقل بين الحلقات
+    function switchRing(ringKey) {
+        currentRing = ringKey;
+        document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+            btn.classList.toggle('active', ['omar', 'bilal', 'saad'][index] === ringKey);
+        });
         render();
-    </script>
+    }
+
+    // إضافة طالب جديد وحفظه في قاعدة البيانات
+    async function addStudent() {
+        const input = document.getElementById('student-name-input');
+        const name = input.value.trim();
+        if (!name) return;
+
+        try {
+            await fetch('/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, ring: currentRing })
+            });
+            input.value = '';
+            await loadStudents(); // إعادة جلب القائمة المحدثة
+        } catch (err) {
+            console.error("خطأ في إضافة الطالب:", err);
+        }
+    }
+
+    // حذف طالب من قاعدة البيانات
+    async function deleteStudent(id) {
+        try {
+            await fetch(`/api/students/${id}`, { method: 'DELETE' });
+            await loadStudents(); // إعادة جلب القائمة المحدثة
+        } catch (err) {
+            console.error("خطأ في حذف الطالب:", err);
+        }
+    }
+
+    // تحديث حالة الحضور في قاعدة البيانات
+    async function setStatus(id, newStatus) {
+        const student = allStudents.find(s => s.id === id);
+        const finalStatus = student.status === newStatus ? null : newStatus;
+
+        try {
+            await fetch(`/api/students/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: finalStatus })
+            });
+            await loadStudents(); // إعادة جلب القائمة المحدثة
+        } catch (err) {
+            console.error("خطأ في تحديث حالة الطالب:", err);
+        }
+    }
+
+    // تحديث الإحصائيات
+    function updateStats(students) {
+        document.getElementById('total-count').innerText = students.length;
+        document.getElementById('present-count').innerText = students.filter(s => s.status === 'present').length;
+        document.getElementById('absent-count').innerText = students.filter(s => s.status === 'absent').length;
+        document.getElementById('excused-count').innerText = students.filter(s => s.status === 'excused').length;
+    }
+
+    // عرض الطلاب الخاصين بالحلقة الحالية
+    function render() {
+        const container = document.getElementById('students-container');
+        container.innerHTML = '';
+        const filtered = allStudents.filter(s => s.ring === currentRing);
+
+        filtered.forEach(student => {
+            const card = document.createElement('div');
+            card.className = 'student-card';
+            card.innerHTML = `
+                <div class="student-info">
+                    <i class="fa-solid fa-user-graduate"></i>
+                    <span>${student.name}</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <div class="attendance-btns">
+                        <button class="status-btn present ${student.status === 'present' ? 'active' : ''}" onclick="setStatus(${student.id}, 'present')">حاضر</button>
+                        <button class="status-btn absent ${student.status === 'absent' ? 'active' : ''}" onclick="setStatus(${student.id}, 'absent')">غائب</button>
+                        <button class="status-btn excused ${student.status === 'excused' ? 'active' : ''}" onclick="setStatus(${student.id}, 'excused')">مستأذن</button>
+                    </div>
+                    <button class="delete-btn" onclick="deleteStudent(${student.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        updateStats(filtered);
+    }
+
+    // تشغيل جلب البيانات فور تحميل الصفحة
+    window.onload = loadStudents;
+</script>
 </body>
 </html>
