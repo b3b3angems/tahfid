@@ -12,7 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// تهيئة قاعدة البيانات والتأكد من الأعمدة
+// تهيئة قاعدة البيانات وتنظيف القيود القديمة
 async function initDB() {
   try {
     await pool.query(`
@@ -37,8 +37,11 @@ async function initDB() {
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS year_num INT DEFAULT 1447;`);
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS month_num INT DEFAULT 1;`);
     await pool.query(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS week_num INT DEFAULT 1;`);
-    await pool.query(`ALTER TABLE attendance ALTER COLUMN date DROP NOT NULL;`).catch(() => {});
 
+    // إسقاط القيد القديم المسبب للمشكلة إذا كان موجوداً
+    await pool.query(`ALTER TABLE attendance DROP CONSTRAINT IF EXISTS unique_student_day;`);
+
+    // إضافة القيد الجديد المعتمد على الأسبوع والشهر والسنة
     await pool.query(`
       DO $$ 
       BEGIN 
@@ -50,7 +53,7 @@ async function initDB() {
       END $$;
     `);
 
-    console.log('Database initialized with unmarked status support');
+    console.log('Database initialized and old constraints dropped successfully');
   } catch (err) {
     console.error('Error initializing DB:', err);
   }
@@ -66,7 +69,7 @@ app.get('/', (req, res) => {
   else res.status(404).send('Index file not found');
 });
 
-// جلب الطلاب مع حالتها (الافتراضي unmarked)
+// جلب الطلاب مع الحالات
 app.get('/api/students', async (req, res) => {
   const day = req.query.day || 'الأحد';
   const year = parseInt(req.query.year) || 1447;
@@ -109,7 +112,8 @@ app.post('/api/students', async (req, res) => {
     
     await pool.query(
       `INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status) 
-       VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING`,
+       VALUES ($1, $2, $3, $4, $5, $6) 
+       ON CONFLICT (student_id, day_name, week_num, month_num, year_num) DO NOTHING`,
       [student.id, currentDay, y, m, w, 'unmarked']
     );
     res.json(student);
@@ -119,7 +123,7 @@ app.post('/api/students', async (req, res) => {
   }
 });
 
-// تحديث حالة الحضور
+// تحديث حالة الحضور فردياً
 app.put('/api/attendance', async (req, res) => {
   const { student_id, day, year, month, week, status, reason } = req.body;
   const y = parseInt(year) || 1447;
@@ -141,7 +145,7 @@ app.put('/api/attendance', async (req, res) => {
   }
 });
 
-// تعيين حالة جماعية (مثل: حاضري الكل أو لم يتم التحضير للكل)
+// تغيير الحضور جماعياً (تحضير الكل / إعادة ضبط لم يتم التحضير)
 app.post('/api/attendance/all-status', async (req, res) => {
   const { ring, day, year, month, week, status } = req.body;
   const y = parseInt(year) || 1447;
@@ -155,7 +159,8 @@ app.post('/api/attendance/all-status', async (req, res) => {
       await pool.query(`
         INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status, reason)
         VALUES ($1, $2, $3, $4, $5, $6, '')
-        ON CONFLICT (student_id, day_name, week_num, month_num, year_num) DO UPDATE SET status = $6, reason = '';
+        ON CONFLICT (student_id, day_name, week_num, month_num, year_num) 
+        DO UPDATE SET status = $6, reason = '';
       `, [s.id, day, y, m, w, newStatus]);
     }
     res.json({ success: true });
@@ -176,7 +181,7 @@ app.delete('/api/students/:id', async (req, res) => {
   }
 });
 
-// جلب إحصائيات الشهر الهجري للطالب
+// جلب إحصائيات الشهر
 app.get('/api/students/:id/stats', async (req, res) => {
   const studentId = req.params.id;
   const year = parseInt(req.query.year) || 1447;
