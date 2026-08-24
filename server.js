@@ -12,7 +12,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-// تهيئة وقواعد البيانات وإضافة الأعمدة الناقصة تلقائياً
+// تهيئة قاعدة البيانات وإصلاح الأعمدة القديمة تلقائياً
 async function initDB() {
   try {
     await pool.query(`
@@ -30,12 +30,17 @@ async function initDB() {
       );
     `);
 
-    // إضافة عمود day_name لجدول attendance في حال عدم وجوده
+    // إضافة عمود day_name إن لم يكن موجوداً
     await pool.query(`
       ALTER TABLE attendance ADD COLUMN IF NOT EXISTS day_name VARCHAR(20) DEFAULT 'الأحد';
     `);
 
-    // التأكد من وجود الشرط الفريد للطلاب واليوم
+    // إسقاط شرط الـ NOT NULL عن عمود date القديم إن كان موجوداً حتى لا يسبب خطأ عند الإضافة
+    await pool.query(`
+      ALTER TABLE attendance ALTER COLUMN date DROP NOT NULL;
+    `).catch(() => {}); // تجاهل الخطأ في حال لم يكن عمود date موجوداً أصلاً
+
+    // إضافة الشرط الفريد لحظر التكرار على الطالب واليوم
     await pool.query(`
       DO $$ 
       BEGIN 
@@ -47,7 +52,7 @@ async function initDB() {
       END $$;
     `);
 
-    console.log('Database synced successfully');
+    console.log('Database synced successfully & old schema fixed');
   } catch (err) {
     console.error('Error initializing DB:', err);
   }
@@ -90,13 +95,14 @@ app.post('/api/students', async (req, res) => {
   try {
     const studentRes = await pool.query('INSERT INTO students (name, ring) VALUES ($1, $2) RETURNING *', [name, ring]);
     const student = studentRes.rows[0];
+    
     await pool.query(
       'INSERT INTO attendance (student_id, day_name, status) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
       [student.id, currentDay, 'present']
     );
     res.json(student);
   } catch (err) { 
-    console.error(err);
+    console.error('Error adding student:', err);
     res.status(500).send(err.message); 
   }
 });
