@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>جامع الشقيحي - نظام الحلقات</title>
 
-    <!-- أيقونة التاب (Favicon) على شكل إيموجي مسجد -->
+    <!-- أيقونة التاب (Favicon) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕌</text></svg>">
 
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -36,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* Animations */
         @keyframes fadeInScale {
             from { opacity: 0; transform: scale(0.95) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
@@ -409,8 +408,9 @@
             <div class="stat-card"><h3>لم يتم التحضير</h3><div class="count" style="color: var(--unmarked);" id="unmarked-count">0</div></div>
         </div>
 
+        <!-- حقل إضافة طالب مع دعم Enter وAuto-Focus -->
         <div class="add-student-box">
-            <input type="text" id="student-name-input" placeholder="أدخل اسم الطالب الجديد...">
+            <input type="text" id="student-name-input" placeholder="أدخل اسم الطالب الجديد واضغط Enter..." onkeydown="handleInputKeyDown(event)">
             <button onclick="addStudent()"><i class="fa-solid fa-plus"></i> إضافة</button>
         </div>
 
@@ -443,7 +443,6 @@
         let activeStudentForReason = null;
 
         function setInitialBaseDate() {
-            // تثبيت البداية الافتراضية: 1448 - ربيع الأول (3) - الأسبوع الثاني (2) - الاثنين
             document.getElementById('year-select').value = "1448";
             document.getElementById('month-select').value = "3";
             document.getElementById('week-select').value = "2";
@@ -469,6 +468,13 @@
                 loadStudents();
             }
         };
+
+        function handleInputKeyDown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                addStudent();
+            }
+        }
 
         function getSelectedPeriod() {
             return {
@@ -588,7 +594,8 @@
         }
 
         async function addStudent() {
-            const name = document.getElementById('student-name-input').value.trim();
+            const inputField = document.getElementById('student-name-input');
+            const name = inputField.value.trim();
             if (!name) return;
 
             const { year, month, week } = getSelectedPeriod();
@@ -598,7 +605,8 @@
                 body: JSON.stringify({ name, ring: currentRing, day: currentDay, year, month, week })
             });
 
-            document.getElementById('student-name-input').value = '';
+            inputField.value = '';
+            inputField.focus(); // إبقاء مؤشر الكتابة داخل الحقل
             loadStudents();
         }
 
