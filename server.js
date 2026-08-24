@@ -4,15 +4,17 @@ const path = require('path');
 
 const app = express();
 app.use(express.json());
-app.use(express.static('public'));
 
-// الاتصال بقاعدة البيانات على Render
+// تقديم الملفات الثابتة من مجلد public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// الاتصال بقاعدة البيانات
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
-// إنشاء الجدول تلقائياً إذا لم يكن موجوداً
+// إنشاء الجدول تلقائياً
 pool.query(`
   CREATE TABLE IF NOT EXISTS students (
     id SERIAL PRIMARY KEY,
@@ -22,7 +24,12 @@ pool.query(`
   )
 `);
 
-// جلب جميع الطلاب
+// المسار الرئيسي لعرض الصفحة
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// APIs
 app.get('/api/students', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM students ORDER BY id ASC');
@@ -32,7 +39,6 @@ app.get('/api/students', async (req, res) => {
   }
 });
 
-// إضافة طالب
 app.post('/api/students', async (req, res) => {
   const { name, ring } = req.body;
   try {
@@ -43,7 +49,6 @@ app.post('/api/students', async (req, res) => {
   }
 });
 
-// تحديث الحالة (حاضر / غائب / مستأذن)
 app.put('/api/students/:id', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -55,7 +60,6 @@ app.put('/api/students/:id', async (req, res) => {
   }
 });
 
-// حذف طالب
 app.delete('/api/students/:id', async (req, res) => {
   const { id } = req.params;
   try {
@@ -66,5 +70,5 @@ app.delete('/api/students/:id', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
