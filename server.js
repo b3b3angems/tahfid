@@ -24,9 +24,20 @@ pool.query(`
   )
 `);
 
+const fs = require('fs');
+
 // المسار الرئيسي لعرض الصفحة
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const publicPath = path.join(__dirname, 'public', 'index.html');
+  const rootPath = path.join(__dirname, 'index.html');
+
+  if (fs.existsSync(publicPath)) {
+    res.sendFile(publicPath);
+  } else if (fs.existsSync(rootPath)) {
+    res.sendFile(rootPath);
+  } else {
+    res.status(404).send('لم يتم العثور على ملف index.html في المشروع');
+  }
 });
 
 // APIs
