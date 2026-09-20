@@ -2,19 +2,10 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
-const multer = require('multer');
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// إعداد استقبال الصور (كشف التحضير الورقي) في الذاكرة مباشرة
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB كحد أقصى
-});
-
-const VALID_DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -209,153 +200,6 @@ app.get('/api/students/:id/stats', async (req, res) => {
   } catch (err) { 
     console.error(err);
     res.status(500).send(err.message); 
-  }
-});
-
-// تحليل صورة كشف التحضير الورقي بالذكاء الاصطناعي
-// يقرأ اليوم والأسبوع من رأس الصفحة (المطبوع بخط الكمبيوتر) ويحاول فهم علامات
-// الصح/الخطأ أمام كل طالب. لا يتم حفظ أي شيء في قاعدة البيانات هنا؛ النتيجة
-// تُعاد للمراجعة والتعديل من الواجهة قبل الحفظ الفعلي عبر /api/attendance/bulk-update
-app.post('/api/attendance/scan', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'لم يتم إرسال صورة' });
-    }
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return res.status(500).json({ error: 'مفتاح الذكاء الاصطناعي (ANTHROPIC_API_KEY) غير معرّف على الخادم' });
-    }
-
-    const ring = req.body.ring || '';
-    const studentsRes = await pool.query(
-      'SELECT id, name FROM students WHERE ring = $1 ORDER BY id ASC',
-      [ring]
-    );
-    const knownStudents = studentsRes.rows;
-
-    const base64Image = req.file.buffer.toString('base64');
-    const mediaType = req.file.mimetype || 'image/jpeg';
-
-    const promptText = `
-أنت تحلل صورة فوتوغرافية لكشف تحضير ورقي لحلقة تحفيظ قرآن.
-
-في أعلى الصفحة يوجد نص مطبوع بخط الكمبيوتر (وليس مكتوباً باليد) يوضح اسم اليوم ورقم الأسبوع. اقرأ هذا الجزء بعناية فائقة لأنه الأكثر وضوحاً.
-اسم اليوم يجب أن يكون واحداً فقط من هذه القائمة بالضبط: "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس".
-
-كل صف في الجدول يمثل طالباً وبجانب اسمه علامة مكتوبة باليد:
-- علامة صح (✓) تعني الحالة "present"
-- علامة خطأ أو إكس (X ✗) تعني الحالة "absent"
-- إذا كانت الخانة فارغة أو العلامة غير واضحة/غير مفهومة تماماً، اجعل الحالة "unmarked" (لا تخمّن)
-
-قائمة الطلاب المعروفين حالياً في النظام (id, name) هي:
-${JSON.stringify(knownStudents)}
-
-طابق كل اسم مكتوب في الصورة مع أقرب اسم في القائمة أعلاه (حتى لو وُجد اختلاف بسيط في الكتابة أو الإملاء)، واستخدم رقم id الصحيح له من القائمة.
-إن وجدت في الصورة اسماً لا يوجد له مطابقة معقولة في القائمة، أضفه كنص داخل unmatched_names ولا تضعه ضمن results.
-
-أعد الإجابة بصيغة JSON فقط، بدون أي شرح أو نص إضافي وبدون علامات Markdown، بالشكل التالي بالضبط:
-{
-  "day": "اسم اليوم كما ظهر في الصورة أو null إذا لم يكن واضحاً",
-  "week": رقم الأسبوع كرقم صحيح أو null إذا لم يكن واضحاً,
-  "results": [ { "student_id": رقم الـ id, "status": "present" أو "absent" أو "unmarked" } ],
-  "unmatched_names": ["اسم غير مطابق 1", "اسم غير مطابق 2"]
-}
-`.trim();
-
-    const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2000,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Image } },
-              { type: 'text', text: promptText }
-            ]
-          }
-        ]
-      })
-    });
-
-    const aiData = await aiResponse.json();
-
-    if (aiData.error) {
-      console.error('Anthropic API error:', aiData.error);
-      return res.status(500).json({ error: 'خطأ من خدمة الذكاء الاصطناعي: ' + aiData.error.message });
-    }
-
-    const textBlock = (aiData.content || []).find(c => c.type === 'text');
-    if (!textBlock) {
-      return res.status(500).json({ error: 'لم يتم استلام رد نصي من الذكاء الاصطناعي' });
-    }
-
-    const cleaned = textBlock.text
-      .trim()
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/```\s*$/i, '');
-
-    let parsed;
-    try {
-      parsed = JSON.parse(cleaned);
-    } catch (e) {
-      console.error('Failed to parse AI JSON response:', cleaned);
-      return res.status(500).json({ error: 'تعذر فهم رد الذكاء الاصطناعي، حاول بصورة أوضح' });
-    }
-
-    const nameById = {};
-    knownStudents.forEach(s => { nameById[s.id] = s.name; });
-
-    const results = (Array.isArray(parsed.results) ? parsed.results : [])
-      .filter(r => r && nameById[r.student_id])
-      .map(r => ({
-        student_id: r.student_id,
-        name: nameById[r.student_id],
-        status: ['present', 'absent', 'excused', 'unmarked'].includes(r.status) ? r.status : 'unmarked'
-      }));
-
-    const detectedDay = VALID_DAYS.includes(parsed.day) ? parsed.day : null;
-    const detectedWeek = Number.isInteger(parsed.week) ? parsed.week : (parseInt(parsed.week) || null);
-
-    res.json({
-      day: detectedDay,
-      week: detectedWeek,
-      results,
-      unmatched_names: Array.isArray(parsed.unmatched_names) ? parsed.unmatched_names : []
-    });
-  } catch (err) {
-    console.error('Error scanning attendance sheet:', err);
-    res.status(500).send(err.message);
-  }
-});
-
-// حفظ دفعة من حالات التحضير بعد مراجعتها (تُستخدم بعد المسح بالذكاء الاصطناعي)
-app.post('/api/attendance/bulk-update', async (req, res) => {
-  const { day, year, month, week, updates } = req.body;
-  const y = parseInt(year) || 1447;
-  const m = parseInt(month) || 1;
-  const w = parseInt(week) || 1;
-  const list = Array.isArray(updates) ? updates : [];
-
-  try {
-    for (const u of list) {
-      await pool.query(`
-        INSERT INTO attendance (student_id, day_name, year_num, month_num, week_num, status, reason)
-        VALUES ($1, $2, $3, $4, $5, $6, '')
-        ON CONFLICT (student_id, day_name, week_num, month_num, year_num)
-        DO UPDATE SET status = EXCLUDED.status, reason = '';
-      `, [u.student_id, day, y, m, w, ['present', 'absent', 'excused', 'unmarked'].includes(u.status) ? u.status : 'unmarked']);
-    }
-    res.json({ success: true, updated: list.length });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
   }
 });
 

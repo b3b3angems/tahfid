@@ -494,30 +494,6 @@
         </div>
     </div>
 
-    <!-- Modal مسح كشف التحضير الورقي بالذكاء الاصطناعي -->
-    <div class="portal-overlay hidden" id="scan-modal">
-        <div class="modal-box" style="max-width:560px; max-height:88vh; overflow-y:auto;">
-            <h3 style="margin-bottom: 0.4rem; color: #fff;"><i class="fa-solid fa-camera"></i> مسح كشف تحضير ورقي</h3>
-            <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
-                صوّر الكشف الورقي بحيث يظهر رأس الصفحة (اليوم والأسبوع) بوضوح، ثم راجع النتيجة قبل الحفظ.
-            </p>
-
-            <input type="file" id="scan-file-input" accept="image/*" capture="environment" class="custom-input" style="text-align:right; padding:0.6rem; margin-top:0;">
-
-            <div style="display:flex; gap:0.8rem; margin-top:1rem;">
-                <button class="portal-btn" style="flex:1; justify-content:center; background:var(--primary-emerald);" onclick="analyzeSheet()"><i class="fa-solid fa-wand-magic-sparkles"></i> تحليل الصورة</button>
-                <button class="portal-btn" style="flex:1; justify-content:center;" onclick="closeScanModal()">إغلاق</button>
-            </div>
-
-            <div id="scan-results" style="margin-top:1.2rem; text-align:right;"></div>
-            <div id="scan-unmatched"></div>
-
-            <button id="scan-confirm-btn" class="portal-btn hidden" style="width:100%; justify-content:center; background:var(--primary-emerald); margin-top:1rem;" onclick="confirmScanSave()">
-                <i class="fa-solid fa-floppy-disk"></i> حفظ التحضير المكتشف
-            </button>
-        </div>
-    </div>
-
     <!-- Admin View -->
     <div class="container hidden" id="admin-view">
         
@@ -599,10 +575,9 @@
         </div>
 
         <div class="action-bar">
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <div style="display:flex; gap:0.5rem;">
                 <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem; background:rgba(16,185,129,0.2);" onclick="setAllPresent()">تحضير الكل "حاضر"</button>
                 <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem;" onclick="setAllUnmarked()">إعادة ضبط الكل</button>
-                <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem; background:rgba(52,211,153,0.15);" onclick="openScanModal()"><i class="fa-solid fa-camera"></i> مسح كشف ورقي بالذكاء الاصطناعي</button>
             </div>
             <button class="portal-btn" style="padding:0.5rem 1rem; font-size:0.85rem;" onclick="backToRings()">تغيير الحلقة</button>
         </div>
@@ -616,7 +591,6 @@
         let allStudents = [];
         let activeStudentForReason = null;
         let activeStudentForRecitation = null;
-        let scanReviewData = null;
 
         window.onload = () => {
             const role = localStorage.getItem('portal_role');
@@ -864,128 +838,6 @@
         async function deleteStudent(id) {
             if (!confirm('هل تريد حذف الطالب؟')) return;
             await fetch(`/api/students/${id}`, { method: 'DELETE' });
-            loadStudents();
-        }
-
-        /* مسح كشف التحضير الورقي بالذكاء الاصطناعي */
-        function openScanModal() {
-            document.getElementById('scan-modal').classList.remove('hidden');
-            document.getElementById('scan-file-input').value = '';
-            document.getElementById('scan-results').innerHTML = '';
-            document.getElementById('scan-unmatched').innerHTML = '';
-            document.getElementById('scan-confirm-btn').classList.add('hidden');
-            scanReviewData = null;
-        }
-
-        function closeScanModal() {
-            document.getElementById('scan-modal').classList.add('hidden');
-            scanReviewData = null;
-        }
-
-        async function analyzeSheet() {
-            const fileInput = document.getElementById('scan-file-input');
-            const file = fileInput.files[0];
-            const resultsBox = document.getElementById('scan-results');
-            document.getElementById('scan-unmatched').innerHTML = '';
-            document.getElementById('scan-confirm-btn').classList.add('hidden');
-
-            if (!file) {
-                resultsBox.innerHTML = '<p style="text-align:center; color:var(--excused);">الرجاء اختيار صورة أولاً.</p>';
-                return;
-            }
-
-            resultsBox.innerHTML = '<p style="text-align:center; color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحليل الصورة بالذكاء الاصطناعي...</p>';
-
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('ring', currentRing);
-
-            try {
-                const res = await fetch('/api/attendance/scan', { method: 'POST', body: formData });
-                const data = await res.json();
-
-                if (!res.ok || data.error) {
-                    resultsBox.innerHTML = `<p style="text-align:center; color:var(--absent);">${data.error || 'حدث خطأ أثناء التحليل.'}</p>`;
-                    return;
-                }
-
-                if (!data.results || data.results.length === 0) {
-                    resultsBox.innerHTML = '<p style="text-align:center; color:var(--excused);">لم يتم التعرف على أي طالب في الصورة. حاول بصورة أوضح.</p>';
-                    return;
-                }
-
-                scanReviewData = data;
-                renderScanReview(data);
-            } catch (err) {
-                resultsBox.innerHTML = '<p style="text-align:center; color:var(--absent);">تعذر الاتصال بالخادم لتحليل الصورة.</p>';
-            }
-        }
-
-        function renderScanReview(data) {
-            const validDays = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-            if (data.day && validDays.includes(data.day)) {
-                switchDay(data.day);
-            }
-            if (data.week) {
-                const weekSelect = document.getElementById('week-select');
-                if ([...weekSelect.options].some(o => o.value == data.week)) {
-                    weekSelect.value = data.week;
-                }
-            }
-
-            let html = `<p style="margin-bottom:0.8rem; color:var(--text-muted); font-size:0.85rem;">
-                اليوم المكتشف: <strong style="color:#fff;">${data.day || 'غير واضح'}</strong>
-                &nbsp;—&nbsp; الأسبوع المكتشف: <strong style="color:#fff;">${data.week || 'غير واضح'}</strong>
-                <br>تأكد من صحة السنة/الشهر/الأسبوع/اليوم في الحقول أعلاه، ثم راجع حالة كل طالب قبل الحفظ:
-            </p>`;
-
-            data.results.forEach((r, idx) => {
-                html += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(8,26,21,0.6); border:1px solid var(--card-border); padding:0.6rem 0.9rem; border-radius:10px; margin-bottom:0.5rem; gap:0.6rem;">
-                        <span style="font-weight:700;">${r.name}</span>
-                        <select onchange="updateScanStatus(${idx}, this.value)" style="width:auto; margin:0; padding:0.4rem 0.6rem; font-size:0.85rem;">
-                            <option value="present" ${r.status === 'present' ? 'selected' : ''}>حاضر</option>
-                            <option value="absent" ${r.status === 'absent' ? 'selected' : ''}>غائب</option>
-                            <option value="excused" ${r.status === 'excused' ? 'selected' : ''}>مستأذن</option>
-                            <option value="unmarked" ${r.status === 'unmarked' ? 'selected' : ''}>لم يتم التحديد</option>
-                        </select>
-                    </div>`;
-            });
-
-            document.getElementById('scan-results').innerHTML = html;
-
-            const unmatchedBox = document.getElementById('scan-unmatched');
-            if (data.unmatched_names && data.unmatched_names.length) {
-                unmatchedBox.innerHTML = `<p style="color:var(--excused); font-size:0.8rem; margin-top:0.8rem;">
-                    أسماء وردت في الصورة ولم يتم التعرف عليها ضمن طلاب هذه الحلقة: ${data.unmatched_names.join('، ')}.
-                    أضفهم من حقل "إضافة طالب" ثم أعد المسح إن رغبت.
-                </p>`;
-            } else {
-                unmatchedBox.innerHTML = '';
-            }
-
-            document.getElementById('scan-confirm-btn').classList.remove('hidden');
-        }
-
-        function updateScanStatus(idx, value) {
-            if (scanReviewData && scanReviewData.results[idx]) {
-                scanReviewData.results[idx].status = value;
-            }
-        }
-
-        async function confirmScanSave() {
-            if (!scanReviewData || !scanReviewData.results.length) return;
-
-            const { year, month, week } = getSelectedPeriod();
-            const updates = scanReviewData.results.map(r => ({ student_id: r.student_id, status: r.status }));
-
-            await fetch('/api/attendance/bulk-update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ day: currentDay, year, month, week, updates })
-            });
-
-            closeScanModal();
             loadStudents();
         }
 
